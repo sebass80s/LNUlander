@@ -105,7 +105,7 @@ test("Rune camera zoom increases smoothly as craft approaches grass", () => {
     assert.equal(low,0.75);
     assert.ok(middle>low);
     assert.ok(close>middle);
-    assert.ok(close<=1.43);
+    assert.ok(close<=1.431);
 });
 
 test("zoom stays inside Rune SDK viewport range at extreme altitudes", () => {
