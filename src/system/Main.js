@@ -1,16 +1,16 @@
-/** @constructor @extends rune.system.Application */
+/** Rune SDK application, at a full 1280x720 render resolution. */
 lnulander.system.Main = function() {
     rune.system.Application.call(this, {
         developer: "se.lnulander",
         app: "lnulander",
-        build: "0.2.0",
+        build: "0.3.0",
         scene: lnulander.scene.Game,
         resources: lnulander.data.Requests,
         useGamepads: false,
         useKeyboard: true,
         framerate: 30,
-        screenResolutionX: 418,
-        screenResolutionY: 235,
+        screenResolutionX: 1280,
+        screenResolutionY: 720,
         splashScreen: false,
         debug: false
     });

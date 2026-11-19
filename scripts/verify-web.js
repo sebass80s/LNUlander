@@ -11,9 +11,9 @@ assert.match(html, /lnulander\.bootstrap\(\)/);
 assert.ok(script.length > 500000, "Rune SDK was not included in the compiled bundle");
 assert.ok(fs.existsSync(path.join(dir, "style.css")));
 assert.ok(fs.existsSync(path.join(dir, ".nojekyll")));
-for (const asset of ["h-house.webp", "lander.png", "flame.png"]) {
+for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png"]) {
     assert.ok(fs.statSync(path.join(dir, "art", asset)).size > 100, asset + " missing or empty");
 }
-assert.match(html, /art\/h-house\.webp/);
-assert.match(html, /art\/lander\.png/);
+assert.match(html, /art\/grass-world\.webp/);
+assert.match(html, /art\/grass-lander\.png/);
 console.log("Web bundle contains the Rune runtime, game and required files");

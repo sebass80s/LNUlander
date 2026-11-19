@@ -1,22 +1,32 @@
 # LNU Lander
 
-Retro 2D landing game built with [Rune SDK](https://github.com/VectorPanic/rune-sdk). The landing goal is **H-husets tak** at Linnéuniversitetet, Växjö.
+A Rune SDK 2D landing game featuring the **H building** of Linnéuniversitetet in Växjö.
 
-Version **0.2.0** uses the approved pixel-art concept image of the H building. The background is derived from that image with the stationary craft removed; the movable bright-yellow spacecraft and its flag are isolated from the same image. This is a stylized game representation, not an architectural survey.
+## Version 0.3: large world and Rune camera zoom
 
-## Play
+- Land on the marked **grass landing pad in front of H-huset**.
+- The world is **1720 × 1500 world pixels**, and the game canvas is rendered natively at **1280 × 720**.
+- Start zoomed out at **0.75×**. As the ship descends, the built-in [Rune `CameraViewport.zoomTo`](https://github.com/VectorPanic/rune-sdk/blob/main/src/camera/CameraViewport.js) moves smoothly toward **1.43×**.
+- Camera tracking and clamped world bounds keep the lander in view. The camera-local HUD stays the same readable size.
+- Background pixel detail uses the **native generated 1672 × 941 reference image without upscaling**. Additional sky above it creates more flight room. A WebP asset is bundled locally.
+- The detailed yellow lander and flag are extracted as a separate transparent image. Its primary yellow is RGB(255, 255, 0).
+- Canvas smoothing is enabled for fractional zoom to avoid stair-step aliasing and harsh block enlargement.
 
-Control the spacecraft in low gravity. Land inside the **marked H rooftop landing pad** slowly enough to survive. Fuel is limited.
+The game simulates landing speed in **pixels per 30 FPS tick**. The displayed V-SPEED is a signed engine-relative number, not a claim of physical m/s.
 
-- **Up / Space / W**: thrust upward
-- **Left / Right** or **A / D**: horizontal steering
-- **R**: restart after landing or crashing
+### Controls
 
-## Download a working browser build
+- **Up / Space / W**: main thrust
+- **Left / Right / A / D**: steering
+- **R**: start a new attempt
 
-Open the latest **Browser playtest** workflow under GitHub Actions. Download the `LNU-Lander-Web` artifact and unzip it. Double-click `index.html` to play locally. No Terminal or macOS app installation is required.
+Touch down fully within the marked pad at low horizontal and vertical velocity.
 
-## Development and checks
+### Browser playtest (no Terminal needed)
+
+Open the newest **Browser playtest** action run, download artifact **LNU-Lander-Web**, extract it, and open `index.html`. Runs offline in the browser, without a Mac app installation.
+
+### Development
 
 ```bash
 npm install
@@ -27,18 +37,10 @@ npm run web:verify
 npm test
 ```
 
-`npm test` launches Rune's debug Electron build; `npm run check` runs the unit tests and syntax checks.
+`npm test` opens Rune in Electron. The CI workflow runs Node unit tests, checks browser resource packaging, opens the actual compiled web game in Electron/Chromium, and saves screenshots.
 
-The **macOS playtest build** workflow captures a renderer screenshot and checks a pixel in the H-house facade to prove that the approved image loaded in Rune. It still creates unsigned Electron packages: a successful CI build does **not** mean macOS Gatekeeper will permit installation. Prefer the browser artifact until Apple notarization is configured.
+We use Rune Tools' ES5-style project structure. The SDK is pinned at upstream commit `15dfb1b6d8e8dba42325f47f54766b44c12ba649`.
 
-## Source layout
+The **macOS playtest build** creates unsigned Electron binaries. They are not notarized and macOS Gatekeeper may block them. Prefer the verified browser version.
 
-- `asset/h-house.webp`: reduced pixel-art background from the approved mockup
-- `asset/lander.png`: yellow lander including the flag, extracted from the mockup
-- `asset/flame.png`: standalone engine exhaust
-- `src/model/Landing.js`: deterministic physics and H-rooftop collision
-- `src/scene/Game.js`: Rune display objects, controls and telemetry
-- `src/system/Main.js`: Rune application configuration
-- `lib/rune.js`: Rune SDK pinned to upstream commit `15dfb1b6d8e8dba42325f47f54766b44c12ba649`
-
-Code follows the project's Rune Tools layout and ES5 source style. No official university affiliation is claimed.
+The stylized building depiction is unofficial and is not an accurate architectural model. The project has no official university affiliation.
