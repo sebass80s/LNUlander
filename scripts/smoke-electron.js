@@ -17,11 +17,12 @@ app.whenReady().then(async () => {
     const win = new BrowserWindow({
         width: 1200,
         height: 675,
-        show: false,
+        show: true,
         backgroundColor: '#081322',
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            backgroundThrottling: false
         }
     });
     win.webContents.on('render-process-gone', (event, details) => {
