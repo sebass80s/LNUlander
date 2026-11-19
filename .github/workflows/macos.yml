@@ -30,16 +30,25 @@ jobs:
           npm run build
       - name: Start Rune renderer and capture screenshot
         run: npx electron scripts/smoke-electron.js
+      - name: Package standalone browser version
+        run: |
+          npm run web:package
+          npm run web:verify
+      - name: Verify compiled web version starts in Chromium
+        run: npx electron scripts/smoke-electron.js --site
       - name: Upload renderer screenshot
         uses: actions/upload-artifact@v4
         with:
           name: LNU-Lander-renderer-${{ matrix.arch }}
-          path: artifacts/rune-smoke.png
+          path: artifacts/*smoke.png
           if-no-files-found: error
       - name: Package desktop application
         run: |
           npx --yes @electron/packager@18.3.6 . "LNU Lander" --platform=darwin --arch="${{ matrix.arch }}" --out=release --overwrite --ignore='^/src/' --ignore='^/tests/' --ignore='^/\.github/' --ignore='^/asset/' --ignore='^/scripts/' --ignore='^/bin-debug/' --ignore='^/\.git/'
           mkdir -p artifacts
+          # Record the current signature status. Unsigned builds are intentionally
+          # not treated as Gatekeeper-approved or notarized.
+          codesign --verify --deep --strict --verbose=2 "release/LNU Lander-darwin-${{ matrix.arch }}/LNU Lander.app" || true
           ditto -c -k --sequesterRsrc --keepParent "release/LNU Lander-darwin-${{ matrix.arch }}/LNU Lander.app" "artifacts/LNU-Lander-${{ matrix.arch }}.zip"
       - name: Upload macOS app
         uses: actions/upload-artifact@v4

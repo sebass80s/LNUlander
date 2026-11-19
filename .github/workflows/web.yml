@@ -1,0 +1,40 @@
+name: Browser playtest
+
+on:
+  push:
+    branches: [main, 'sid/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install build tooling
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify game and build Rune
+        run: |
+          npm run check
+          npm run build
+      - name: Create standalone HTML playtest
+        run: |
+          npm run web:package
+          npm run web:verify
+      - name: Create a ZIP without requiring Electron
+        run: |
+          cd site
+          zip -q -r ../LNU-Lander-Web.zip .
+      - name: Upload playable browser version
+        uses: actions/upload-artifact@v4
+        with:
+          name: LNU-Lander-Web
+          path: LNU-Lander-Web.zip
+          if-no-files-found: error

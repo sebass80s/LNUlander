@@ -38,7 +38,9 @@ app.whenReady().then(async () => {
     });
 
     try {
-        await win.loadFile(path.join(__dirname, '..', 'bin-debug', 'index.html'));
+        const relative = process.argv.includes('--site') ?
+            path.join('site', 'index.html') : path.join('bin-debug', 'index.html');
+        await win.loadFile(path.join(__dirname, '..', relative));
         await new Promise(resolve => setTimeout(resolve, 2000));
         const result = await win.webContents.executeJavaScript(`({
             rune: typeof rune !== "undefined",
@@ -49,7 +51,7 @@ app.whenReady().then(async () => {
         })`);
         fs.mkdirSync(path.join(__dirname, '..', 'artifacts'), { recursive: true });
         const image = await win.webContents.capturePage();
-        fs.writeFileSync(path.join(__dirname, '..', 'artifacts', 'rune-smoke.png'), image.toPNG());
+        fs.writeFileSync(path.join(__dirname, '..', 'artifacts', process.argv.includes('--site') ? 'rune-web-smoke.png' : 'rune-smoke.png'), image.toPNG());
         console.log('Renderer smoke:', JSON.stringify(result));
         if (!result.rune || !result.namespace || !result.application ||
             result.canvasCount < 1 || errors.length) {

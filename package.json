@@ -10,7 +10,9 @@
     "build": "cd ./scripts/shell/ && ./make.sh",
     "test:unit": "node --test tests/*.test.js",
     "test:syntax": "node --check src/scope/Manifest.js && node --check src/model/Landing.js && node --check src/scene/Game.js && node --check src/system/Main.js",
-    "check": "npm run test:syntax && npm run test:unit"
+    "check": "npm run test:syntax && npm run test:unit",
+    "web:package": "node scripts/package-web.js",
+    "web:verify": "node scripts/verify-web.js"
   },
   "devDependencies": {
     "google-closure-compiler": "20261117.0.0",
