@@ -42,15 +42,15 @@ app.whenReady().then(async () => {
         const relative = process.argv.includes('--site') ?
             path.join('site', 'index.html') : path.join('bin-debug', 'index.html');
         await win.loadFile(path.join(__dirname, '..', relative));
-        // Rune's normal presentation includes ~7 seconds of timed fades.
-        // Poll the rendered landing pad instead of assuming 2 seconds is enough.
+        // Rune's loader may need time to reveal the H-house scene.
+        // Poll a verified red facade pixel instead of assuming 2 seconds is enough.
         let result;
         for (let attempt = 0; attempt < 32; attempt++) {
             await new Promise(resolve => setTimeout(resolve, 500));
             result = await win.webContents.executeJavaScript(`(() => {
             const canvas = document.querySelector("canvas");
             const ctx = canvas && canvas.getContext("2d");
-            const pixel = ctx ? Array.from(ctx.getImageData(230, 160, 1, 1).data) : [];
+            const pixel = ctx ? Array.from(ctx.getImageData(150, 114, 1, 1).data) : [];
             return {
                 rune: typeof rune !== "undefined",
                 namespace: typeof lnulander !== "undefined",
@@ -58,14 +58,18 @@ app.whenReady().then(async () => {
                     Boolean(rune.system.Application.instance),
                 model: typeof lnulander !== "undefined" &&
                     Boolean(lnulander.model && lnulander.model.Landing),
+                imagesReady: ["lnu-h-house", "lnu-lander", "lnu-exhaust"].every(id => {
+                    const img = document.getElementById(id);
+                    return Boolean(img && img.complete && img.naturalWidth > 0);
+                }),
                 canvasCount: document.querySelectorAll("canvas").length,
                 canvasSize: canvas ? [canvas.width, canvas.height] : [],
                 pixel: pixel
             };
         })()`);
             const p = result.pixel;
-            if (p.length === 4 && Math.abs(p[0] - 105) <= 10 &&
-                Math.abs(p[1] - 239) <= 10 && Math.abs(p[2] - 191) <= 10) {
+            if (p.length === 4 && Math.abs(p[0] - 114) <= 28 &&
+                Math.abs(p[1] - 39) <= 28 && Math.abs(p[2] - 51) <= 28) {
                 break;
             }
         }
@@ -75,11 +79,11 @@ app.whenReady().then(async () => {
         console.log('Renderer smoke:', JSON.stringify(result));
         const webMode = process.argv.includes('--site');
         const drawn = result.pixel.length === 4 &&
-            Math.abs(result.pixel[0] - 105) <= 10 &&
-            Math.abs(result.pixel[1] - 239) <= 10 &&
-            Math.abs(result.pixel[2] - 191) <= 10;
+            Math.abs(result.pixel[0] - 114) <= 28 &&
+            Math.abs(result.pixel[1] - 39) <= 28 &&
+            Math.abs(result.pixel[2] - 51) <= 28;
         const works = webMode ?
-            (result.namespace && result.model && result.canvasCount === 1 && drawn) :
+            (result.namespace && result.model && result.canvasCount === 1 && result.imagesReady && drawn) :
             (result.rune && result.namespace && result.application && result.canvasCount === 1 && drawn);
         if (!works || errors.length) {
             throw new Error('Renderer smoke failed: ' + JSON.stringify(errors));

@@ -1,79 +1,44 @@
-/**
- * LNU Lander's deterministic, frame-based flight model.
- * One tick corresponds to one Rune update at the configured 30 fps.
- * No DOM or Rune dependencies, so gameplay rules can be unit tested.
- *
- * @constructor
- */
-lnulander.model.Landing = function() {
-    this.reset();
-};
+/** Frame-based LNU Lander physics. Rune display-independent. */
+lnulander.model.Landing = function() { this.reset(); };
+lnulander.model.Landing.WIDTH = 52;
+lnulander.model.Landing.HEIGHT = 52;
+lnulander.model.Landing.ROOF_Y = 103;
+lnulander.model.Landing.PAD_LEFT = 226;
+lnulander.model.Landing.PAD_RIGHT = 310;
+lnulander.model.Landing.SCREEN_WIDTH = 418;
+lnulander.model.Landing.SCREEN_HEIGHT = 235;
 
-lnulander.model.Landing.WIDTH = 14;
-lnulander.model.Landing.HEIGHT = 14;
-lnulander.model.Landing.ROOF_Y = 163;
-lnulander.model.Landing.PAD_LEFT = 150;
-lnulander.model.Landing.PAD_RIGHT = 250;
-lnulander.model.Landing.SCREEN_WIDTH = 400;
-
-/** Restores the beginning of a flight. */
 lnulander.model.Landing.prototype.reset = function() {
-    this.x = 193;
-    this.y = 20;
+    this.x = 170;
+    this.y = 4;
     this.vx = 0;
     this.vy = 0;
-    this.fuel = 420;
+    this.fuel = 350;
     this.status = "flying";
     this.thrusting = false;
 };
 
-/**
- * Advances the model by one fixed 30 fps simulation tick.
- * @param {{up: boolean, left: boolean, right: boolean}} controls
- */
 lnulander.model.Landing.prototype.tick = function(controls) {
-    var width = lnulander.model.Landing.WIDTH;
-    var height = lnulander.model.Landing.HEIGHT;
-    if (this.status !== "flying") {
-        this.thrusting = false;
-        return;
-    }
-
-    this.thrusting = Boolean(controls.up && this.fuel > 0);
-    this.vy += 0.035;
-
-    if (this.thrusting) {
-        this.vy -= 0.105;
-        this.fuel -= 1;
-    }
-    if (controls.left && this.fuel >= 0.25) {
-        this.vx -= 0.027;
-        this.fuel -= 0.25;
-    }
-    if (controls.right && this.fuel >= 0.25) {
-        this.vx += 0.027;
-        this.fuel -= 0.25;
-    }
+    if (this.status !== "flying") { this.thrusting = false; return; }
+    this.vy += 0.026;
+    this.thrusting = Boolean(controls.up && this.fuel >= 1);
+    if (this.thrusting) { this.vy -= 0.097; this.fuel -= 1; }
+    if (controls.left && this.fuel >= 0.3) { this.vx -= 0.05; this.fuel -= 0.3; }
+    if (controls.right && this.fuel >= 0.3) { this.vx += 0.05; this.fuel -= 0.3; }
     this.fuel = Math.max(0, this.fuel);
-    this.vx *= 0.993;
+    this.vx *= 0.984;
     this.x += this.vx;
     this.y += this.vy;
-
-    if (this.x < 0 || this.x + width > lnulander.model.Landing.SCREEN_WIDTH ||
-        this.y + height > 225) {
-        this.status = "crashed";
-        this.thrusting = false;
-        return;
+    if (this.x < 0 || this.x + lnulander.model.Landing.WIDTH > lnulander.model.Landing.SCREEN_WIDTH ||
+        this.y + lnulander.model.Landing.HEIGHT > lnulander.model.Landing.SCREEN_HEIGHT) {
+        this.status = "crashed"; this.thrusting = false; return;
     }
-    if (this.y < 0) {
-        this.y = 0;
-        this.vy = Math.max(0, this.vy);
-    }
-    if (this.y + height >= lnulander.model.Landing.ROOF_Y) {
-        this.y = lnulander.model.Landing.ROOF_Y - height;
+    if (this.y < 0) { this.y = 0; this.vy = Math.max(0, this.vy); }
+    if (this.y + lnulander.model.Landing.HEIGHT >= lnulander.model.Landing.ROOF_Y) {
+        this.y = lnulander.model.Landing.ROOF_Y - lnulander.model.Landing.HEIGHT;
         if (this.x >= lnulander.model.Landing.PAD_LEFT &&
-            this.x + width <= lnulander.model.Landing.PAD_RIGHT &&
-            Math.abs(this.vx) <= 0.55 && this.vy >= 0 && this.vy <= 0.8) {
+            this.x + lnulander.model.Landing.WIDTH <= lnulander.model.Landing.PAD_RIGHT &&
+            Math.abs(this.vx) <= 0.65 && this.vy >= 0 && this.vy <= 0.75) {
             this.status = "landed";
         } else {
             this.status = "crashed";

@@ -27,7 +27,7 @@ test("upward thrust consumes fuel and slows descent", () => {
     const ship = createFlight();
     ship.tick({ up: true, left: false, right: false });
     assert.ok(ship.vy < 0);
-    assert.equal(ship.fuel, 419);
+    assert.equal(ship.fuel, 349);
     assert.equal(ship.thrusting, true);
 });
 
@@ -36,23 +36,23 @@ test("lateral controls alter horizontal velocity", () => {
     ship.tick({ up: false, left: true, right: false });
     assert.ok(ship.vx < 0);
     ship.tick({ up: false, left: false, right: true });
-    assert.ok(ship.vx > -0.027);
+    assert.ok(ship.vx > -0.05);
 });
 
 test("safe, centered touchdown wins", () => {
     const ship = createFlight();
-    ship.x = 190;
-    ship.y = 149;
+    ship.x = 242;
+    ship.y = 51;
     ship.vy = 0.25;
     ship.tick({ up: false, left: false, right: false });
     assert.equal(ship.status, "landed");
-    assert.equal(ship.y, 149);
+    assert.equal(ship.y, 51);
 });
 
 test("touching the roof outside the pad crashes", () => {
     const ship = createFlight();
     ship.x = 80;
-    ship.y = 149;
+    ship.y = 51;
     ship.vy = 0.25;
     ship.tick({ up: false, left: false, right: false });
     assert.equal(ship.status, "crashed");
@@ -60,8 +60,8 @@ test("touching the roof outside the pad crashes", () => {
 
 test("excessive touchdown speed crashes", () => {
     const ship = createFlight();
-    ship.x = 190;
-    ship.y = 149;
+    ship.x = 242;
+    ship.y = 51;
     ship.vy = 1.5;
     ship.tick({ up: false, left: false, right: false });
     assert.equal(ship.status, "crashed");
@@ -73,8 +73,8 @@ test("reset restores the initial flight", () => {
     ship.fuel = 0;
     ship.reset();
     assert.equal(ship.status, "flying");
-    assert.equal(ship.fuel, 420);
-    assert.equal(ship.y, 20);
+    assert.equal(ship.fuel, 350);
+    assert.equal(ship.y, 4);
 });
 
 test("fuel cannot become negative", () => {
@@ -82,5 +82,15 @@ test("fuel cannot become negative", () => {
     ship.fuel = 0.1;
     ship.tick({ up: true, left: true, right: true });
     assert.ok(ship.fuel >= 0);
-    assert.equal(ship.thrusting, true);
+    assert.equal(ship.thrusting, false);
+});
+
+
+test("H-house pad boundaries require the whole craft to be above the pad", () => {
+    const ship = createFlight();
+    ship.x = 265;
+    ship.y = 51;
+    ship.vy = 0.3;
+    ship.tick({ up: false, left: false, right: false });
+    assert.equal(ship.status, "crashed");
 });
