@@ -3,6 +3,7 @@ lnulander.model.Landing = function() { this.reset(); };
 lnulander.model.Landing.WIDTH = 52;
 lnulander.model.Landing.HEIGHT = 52;
 lnulander.model.Landing.ROOF_Y = 103;
+lnulander.model.Landing.PAD_Y = 93;
 lnulander.model.Landing.PAD_LEFT = 226;
 lnulander.model.Landing.PAD_RIGHT = 310;
 lnulander.model.Landing.SCREEN_WIDTH = 418;
@@ -34,15 +35,18 @@ lnulander.model.Landing.prototype.tick = function(controls) {
         this.status = "crashed"; this.thrusting = false; return;
     }
     if (this.y < 0) { this.y = 0; this.vy = Math.max(0, this.vy); }
-    if (this.y + lnulander.model.Landing.HEIGHT >= lnulander.model.Landing.ROOF_Y) {
-        this.y = lnulander.model.Landing.ROOF_Y - lnulander.model.Landing.HEIGHT;
-        if (this.x >= lnulander.model.Landing.PAD_LEFT &&
+    var touchingPad = this.x + lnulander.model.Landing.WIDTH > lnulander.model.Landing.PAD_LEFT &&
+        this.x < lnulander.model.Landing.PAD_RIGHT;
+    if (touchingPad && this.y + lnulander.model.Landing.HEIGHT >= lnulander.model.Landing.PAD_Y) {
+        this.y = lnulander.model.Landing.PAD_Y - lnulander.model.Landing.HEIGHT;
+        this.status = this.x >= lnulander.model.Landing.PAD_LEFT &&
             this.x + lnulander.model.Landing.WIDTH <= lnulander.model.Landing.PAD_RIGHT &&
-            Math.abs(this.vx) <= 0.65 && this.vy >= 0 && this.vy <= 0.75) {
-            this.status = "landed";
-        } else {
-            this.status = "crashed";
-        }
+            Math.abs(this.vx) <= 0.65 && this.vy >= 0 && this.vy <= 0.75 ?
+            "landed" : "crashed";
+        this.thrusting = false;
+    } else if (this.y + lnulander.model.Landing.HEIGHT >= lnulander.model.Landing.ROOF_Y) {
+        this.y = lnulander.model.Landing.ROOF_Y - lnulander.model.Landing.HEIGHT;
+        this.status = "crashed";
         this.thrusting = false;
     }
 };

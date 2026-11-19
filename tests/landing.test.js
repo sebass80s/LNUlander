@@ -42,11 +42,11 @@ test("lateral controls alter horizontal velocity", () => {
 test("safe, centered touchdown wins", () => {
     const ship = createFlight();
     ship.x = 242;
-    ship.y = 51;
+    ship.y = 41;
     ship.vy = 0.25;
     ship.tick({ up: false, left: false, right: false });
     assert.equal(ship.status, "landed");
-    assert.equal(ship.y, 51);
+    assert.equal(ship.y, 41);
 });
 
 test("touching the roof outside the pad crashes", () => {
@@ -61,7 +61,7 @@ test("touching the roof outside the pad crashes", () => {
 test("excessive touchdown speed crashes", () => {
     const ship = createFlight();
     ship.x = 242;
-    ship.y = 51;
+    ship.y = 41;
     ship.vy = 1.5;
     ship.tick({ up: false, left: false, right: false });
     assert.equal(ship.status, "crashed");
@@ -89,8 +89,18 @@ test("fuel cannot become negative", () => {
 test("H-house pad boundaries require the whole craft to be above the pad", () => {
     const ship = createFlight();
     ship.x = 265;
-    ship.y = 51;
+    ship.y = 41;
     ship.vy = 0.3;
     ship.tick({ up: false, left: false, right: false });
+    assert.equal(ship.status, "crashed");
+});
+
+
+test("partially overlapping the raised H pad causes a crash on its edge", () => {
+    const ship = createFlight();
+    ship.x = 205;
+    ship.y = 41;
+    ship.vy = 0.2;
+    ship.tick({up: false, left: false, right: false});
     assert.equal(ship.status, "crashed");
 });
