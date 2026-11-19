@@ -1,0 +1,49 @@
+name: macOS playtest build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, x64]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Electron and compiler
+        run: npm install --no-audit --no-fund
+      - name: Verify and compile
+        run: |
+          npm run check
+          npm run build
+      - name: Start Rune renderer and capture screenshot
+        run: npx electron scripts/smoke-electron.js
+      - name: Upload renderer screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: LNU-Lander-renderer-${{ matrix.arch }}
+          path: artifacts/rune-smoke.png
+          if-no-files-found: error
+      - name: Package desktop application
+        run: |
+          npx --yes @electron/packager@18.3.6 . "LNU Lander" --platform=darwin --arch="${{ matrix.arch }}" --out=release --overwrite --ignore='^/src/' --ignore='^/tests/' --ignore='^/\.github/' --ignore='^/asset/' --ignore='^/scripts/' --ignore='^/bin-debug/' --ignore='^/\.git/'
+          mkdir -p artifacts
+          ditto -c -k --sequesterRsrc --keepParent "release/LNU Lander-darwin-${{ matrix.arch }}/LNU Lander.app" "artifacts/LNU-Lander-${{ matrix.arch }}.zip"
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: LNU-Lander-macOS-${{ matrix.arch }}
+          path: artifacts/*.zip
+          if-no-files-found: error

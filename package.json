@@ -1,0 +1,19 @@
+{
+  "name": "lnulander",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LNU Lander: land a tiny spacecraft on a stylized Växjö campus rooftop using Rune SDK.",
+  "main": "bin/bootstrap.js",
+  "scripts": {
+    "test": "electron ./bin-debug/bootstrap.js",
+    "start": "electron ./bin/bootstrap.js",
+    "build": "cd ./scripts/shell/ && ./make.sh",
+    "test:unit": "node --test tests/*.test.js",
+    "test:syntax": "node --check src/scope/Manifest.js && node --check src/model/Landing.js && node --check src/scene/Game.js && node --check src/system/Main.js",
+    "check": "npm run test:syntax && npm run test:unit"
+  },
+  "devDependencies": {
+    "google-closure-compiler": "20261117.0.0",
+    "electron": "45.4.1"
+  }
+}
