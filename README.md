@@ -12,6 +12,20 @@ Control a tiny lander with gravity, limited fuel, and horizontal drift. Touch do
 - **Left / Right** or **A / D:** horizontal steering
 - **R:** restart
 
+## Play in a browser (no Mac app installation)
+
+The **Browser playtest** GitHub Actions workflow assembles a ZIP artifact named `LNU-Lander-Web`. Download, unzip and double-click `index.html` in a browser.
+
+This version runs the **same Rune SDK and game code** as the Electron app. It does not require installing an unsigned Mac app or using the terminal. It is a downloadable static version, not a live GitHub Pages URL.
+
+```bash
+npm run build
+npm run web:package
+npm run web:verify
+```
+
+Note: macOS Electron builds are currently unsigned and not notarized. macOS Gatekeeper may report that the app is “damaged.” CI's successful execution and package assembly do not guarantee Gatekeeper acceptance. We will not claim a working signed release until a real Apple Developer ID signing and notarization process is verified.
+
 ## Development
 
 Requires Node.js 22+ and npm.

@@ -11,17 +11,18 @@ const errors = [];
 const timeout = setTimeout(() => {
     console.error('Renderer startup timeout');
     app.exit(1);
-}, 20000);
+}, 35000);
 
 app.whenReady().then(async () => {
     const win = new BrowserWindow({
         width: 1200,
         height: 675,
-        show: false,
+        show: true,
         backgroundColor: '#081322',
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            backgroundThrottling: false
         }
     });
     win.webContents.on('render-process-gone', (event, details) => {
@@ -38,21 +39,49 @@ app.whenReady().then(async () => {
     });
 
     try {
-        await win.loadFile(path.join(__dirname, '..', 'bin-debug', 'index.html'));
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const result = await win.webContents.executeJavaScript(`({
-            rune: typeof rune !== "undefined",
-            namespace: typeof lnulander !== "undefined",
-            application: typeof rune !== "undefined" &&
-                Boolean(rune.system.Application.instance),
-            canvasCount: document.querySelectorAll("canvas").length
-        })`);
+        const relative = process.argv.includes('--site') ?
+            path.join('site', 'index.html') : path.join('bin-debug', 'index.html');
+        await win.loadFile(path.join(__dirname, '..', relative));
+        // Rune's normal presentation includes ~7 seconds of timed fades.
+        // Poll the rendered landing pad instead of assuming 2 seconds is enough.
+        let result;
+        for (let attempt = 0; attempt < 32; attempt++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            result = await win.webContents.executeJavaScript(`(() => {
+            const canvas = document.querySelector("canvas");
+            const ctx = canvas && canvas.getContext("2d");
+            const pixel = ctx ? Array.from(ctx.getImageData(230, 160, 1, 1).data) : [];
+            return {
+                rune: typeof rune !== "undefined",
+                namespace: typeof lnulander !== "undefined",
+                application: typeof rune !== "undefined" &&
+                    Boolean(rune.system.Application.instance),
+                model: typeof lnulander !== "undefined" &&
+                    Boolean(lnulander.model && lnulander.model.Landing),
+                canvasCount: document.querySelectorAll("canvas").length,
+                canvasSize: canvas ? [canvas.width, canvas.height] : [],
+                pixel: pixel
+            };
+        })()`);
+            const p = result.pixel;
+            if (p.length === 4 && Math.abs(p[0] - 105) <= 10 &&
+                Math.abs(p[1] - 239) <= 10 && Math.abs(p[2] - 191) <= 10) {
+                break;
+            }
+        }
         fs.mkdirSync(path.join(__dirname, '..', 'artifacts'), { recursive: true });
         const image = await win.webContents.capturePage();
-        fs.writeFileSync(path.join(__dirname, '..', 'artifacts', 'rune-smoke.png'), image.toPNG());
+        fs.writeFileSync(path.join(__dirname, '..', 'artifacts', process.argv.includes('--site') ? 'rune-web-smoke.png' : 'rune-smoke.png'), image.toPNG());
         console.log('Renderer smoke:', JSON.stringify(result));
-        if (!result.rune || !result.namespace || !result.application ||
-            result.canvasCount < 1 || errors.length) {
+        const webMode = process.argv.includes('--site');
+        const drawn = result.pixel.length === 4 &&
+            Math.abs(result.pixel[0] - 105) <= 10 &&
+            Math.abs(result.pixel[1] - 239) <= 10 &&
+            Math.abs(result.pixel[2] - 191) <= 10;
+        const works = webMode ?
+            (result.namespace && result.model && result.canvasCount === 1 && drawn) :
+            (result.rune && result.namespace && result.application && result.canvasCount === 1 && drawn);
+        if (!works || errors.length) {
             throw new Error('Renderer smoke failed: ' + JSON.stringify(errors));
         }
         clearTimeout(timeout);
