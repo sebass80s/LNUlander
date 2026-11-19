@@ -1,60 +1,46 @@
 # LNU Lander
 
-An unofficial retro-inspired 2D landing game set above a **stylized, fictionalized rooftop** at Linnéuniversitetet's Växjö campus. Made with [Rune SDK](https://github.com/VectorPanic/rune-sdk).
+A Rune SDK 2D landing game featuring the **H building** of Linnéuniversitetet in Växjö.
 
-> Prototype 0.1.0: the roof is a placeholder, **not** an accurate depiction of a specific campus building. No official LNU assets are included.
+## Version 0.3: large world and Rune camera zoom
 
-## Play
+- Land on the marked **grass landing pad in front of H-huset**.
+- The world is **1720 × 1500 world pixels**, and the game canvas is rendered natively at **1280 × 720**.
+- Start zoomed out at **0.75×**. As the ship descends, the built-in [Rune `CameraViewport.zoomTo`](https://github.com/VectorPanic/rune-sdk/blob/main/src/camera/CameraViewport.js) moves smoothly toward **1.43×**.
+- Camera tracking and clamped world bounds keep the lander in view. The camera-local HUD stays the same readable size.
+- Background pixel detail uses the **native generated 1672 × 941 reference image without upscaling**. Additional sky above it creates more flight room. A WebP asset is bundled locally.
+- The detailed yellow lander and flag are extracted as a separate transparent image. Its primary yellow is RGB(255, 255, 0).
+- Canvas smoothing is enabled for fractional zoom to avoid stair-step aliasing and harsh block enlargement.
 
-Control a tiny lander with gravity, limited fuel, and horizontal drift. Touch down **inside the green roof pad** with low vertical and horizontal velocity.
+The game simulates landing speed in **pixels per 30 FPS tick**. The displayed V-SPEED is a signed engine-relative number, not a claim of physical m/s.
 
-- **Up / Space:** main thrust
-- **Left / Right** or **A / D:** horizontal steering
-- **R:** restart
+### Controls
 
-## Play in a browser (no Mac app installation)
+- **Up / Space / W**: main thrust
+- **Left / Right / A / D**: steering
+- **R**: start a new attempt
 
-The **Browser playtest** GitHub Actions workflow assembles a ZIP artifact named `LNU-Lander-Web`. Download, unzip and double-click `index.html` in a browser.
+Touch down fully within the marked pad at low horizontal and vertical velocity.
 
-This version runs the **same Rune SDK and game code** as the Electron app. It does not require installing an unsigned Mac app or using the terminal. It is a downloadable static version, not a live GitHub Pages URL.
+### Browser playtest (no Terminal needed)
 
-```bash
-npm run build
-npm run web:package
-npm run web:verify
-```
+Open the newest **Browser playtest** action run, download artifact **LNU-Lander-Web**, extract it, and open `index.html`. Runs offline in the browser, without a Mac app installation.
 
-Note: macOS Electron builds are currently unsigned and not notarized. macOS Gatekeeper may report that the app is “damaged.” CI's successful execution and package assembly do not guarantee Gatekeeper acceptance. We will not claim a working signed release until a real Apple Developer ID signing and notarization process is verified.
-
-## Development
-
-Requires Node.js 22+ and npm.
+### Development
 
 ```bash
 npm install
-npm test             # Rune debug build in Electron
-npm run check        # ES5 syntax + pure physics unit tests
-npm run build        # compiled Rune distribution
-npm start            # compiled release in Electron
+npm run check
+npm run build
+npm run web:package
+npm run web:verify
+npm test
 ```
 
-The project is created from the official [Rune Tools](https://github.com/VectorPanic/rune-tools) templates. The Rune SDK distribution is checked into `lib/rune.js` at upstream commit [`15dfb1b6d8e8dba42325f47f54766b44c12ba649`](https://github.com/VectorPanic/rune-sdk/commit/15dfb1b6d8e8dba42325f47f54766b44c12ba649); it is **not** updated from the floating upstream `main` branch during builds.
+`npm test` opens Rune in Electron. The CI workflow runs Node unit tests, checks browser resource packaging, opens the actual compiled web game in Electron/Chromium, and saves screenshots.
 
-If you add a sprite or scene using Rune Tools, also register the resulting file in `bin-debug/index.html`, `scripts/shell/build.sh`, and any new namespace in `src/scope/Manifest.js`.
+We use Rune Tools' ES5-style project structure. The SDK is pinned at upstream commit `15dfb1b6d8e8dba42325f47f54766b44c12ba649`.
 
-## Builds without a local terminal
+The **macOS playtest build** creates unsigned Electron binaries. They are not notarized and macOS Gatekeeper may block them. Prefer the verified browser version.
 
-The GitHub Actions **Rune CI** workflow runs syntax checks, unit tests and the official Closure Compiler build. The **macOS playtest build** workflow packages unsigned Electron apps for Apple Silicon and Intel Macs, attached as downloadable workflow artifacts.
-
-Unsigned apps may trigger macOS Gatekeeper. The game is not notarized or distributed via the App Store.
-
-## Architecture
-
-- `src/model/Landing.js`: deterministic simulation at 30 fps
-- `src/scene/Game.js`: Rune scene, stage, artboards, text and keyboard
-- `src/system/Main.js`: Rune application configuration
-- `tests/`: Node.js unit tests, independent of Electron
-- `lib/rune.js`: pinned upstream Rune SDK distribution
-- `scripts/shell/`: Rune Tools' ES5 Closure Compiler scripts
-
-No official affiliation with Linnéuniversitetet is claimed. 
+The stylized building depiction is unofficial and is not an accurate architectural model. The project has no official university affiliation.

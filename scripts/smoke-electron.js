@@ -15,8 +15,8 @@ const timeout = setTimeout(() => {
 
 app.whenReady().then(async () => {
     const win = new BrowserWindow({
-        width: 1200,
-        height: 675,
+        width: 1320,
+        height: 780,
         show: true,
         backgroundColor: '#081322',
         webPreferences: {
@@ -42,30 +42,35 @@ app.whenReady().then(async () => {
         const relative = process.argv.includes('--site') ?
             path.join('site', 'index.html') : path.join('bin-debug', 'index.html');
         await win.loadFile(path.join(__dirname, '..', relative));
-        // Rune's normal presentation includes ~7 seconds of timed fades.
-        // Poll the rendered landing pad instead of assuming 2 seconds is enough.
+        // Rune's loader may need time to reveal the H-house scene.
+        // Poll the native-resolution sky pixel instead of assuming 2 seconds is enough.
         let result;
         for (let attempt = 0; attempt < 32; attempt++) {
             await new Promise(resolve => setTimeout(resolve, 500));
             result = await win.webContents.executeJavaScript(`(() => {
             const canvas = document.querySelector("canvas");
             const ctx = canvas && canvas.getContext("2d");
-            const pixel = ctx ? Array.from(ctx.getImageData(230, 160, 1, 1).data) : [];
+            const pixel = ctx ? Array.from(ctx.getImageData(640, 300, 1, 1).data) : [];
+            const world = document.getElementById("lnu-h-house");
             return {
                 rune: typeof rune !== "undefined",
                 namespace: typeof lnulander !== "undefined",
                 application: typeof rune !== "undefined" &&
                     Boolean(rune.system.Application.instance),
+                worldSize: world ? [world.naturalWidth, world.naturalHeight] : [],
                 model: typeof lnulander !== "undefined" &&
                     Boolean(lnulander.model && lnulander.model.Landing),
+                imagesReady: ["lnu-h-house", "lnu-lander", "lnu-exhaust"].every(id => {
+                    const img = document.getElementById(id);
+                    return Boolean(img && img.complete && img.naturalWidth > 0);
+                }),
                 canvasCount: document.querySelectorAll("canvas").length,
                 canvasSize: canvas ? [canvas.width, canvas.height] : [],
                 pixel: pixel
             };
         })()`);
             const p = result.pixel;
-            if (p.length === 4 && Math.abs(p[0] - 105) <= 10 &&
-                Math.abs(p[1] - 239) <= 10 && Math.abs(p[2] - 191) <= 10) {
+            if (p.length === 4 && p[0] < 80 && p[1] > 70 && p[2] > 170) {
                 break;
             }
         }
@@ -75,11 +80,10 @@ app.whenReady().then(async () => {
         console.log('Renderer smoke:', JSON.stringify(result));
         const webMode = process.argv.includes('--site');
         const drawn = result.pixel.length === 4 &&
-            Math.abs(result.pixel[0] - 105) <= 10 &&
-            Math.abs(result.pixel[1] - 239) <= 10 &&
-            Math.abs(result.pixel[2] - 191) <= 10;
+            result.pixel[0] < 80 && result.pixel[1] > 70 && result.pixel[2] > 170;
         const works = webMode ?
-            (result.namespace && result.model && result.canvasCount === 1 && drawn) :
+            (result.namespace && result.model && result.canvasCount === 1 && result.imagesReady &&
+             result.worldSize[0] === 1720 && result.worldSize[1] === 1500 && drawn) :
             (result.rune && result.namespace && result.application && result.canvasCount === 1 && drawn);
         if (!works || errors.length) {
             throw new Error('Renderer smoke failed: ' + JSON.stringify(errors));

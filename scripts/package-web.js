@@ -20,9 +20,13 @@ if (!fs.existsSync(path.join(root, "dist", "lnulander.js"))) {
 fs.mkdirSync(site, { recursive: true });
 fs.writeFileSync(
     path.join(site, "index.html"),
-    html.replace(reference, "./lnulander.js")
+    html.replace(reference, "./lnulander.js").replace(/\.\.\/asset\//g, "./art/")
 );
 fs.copyFileSync(path.join(root, "bin", "style.css"), path.join(site, "style.css"));
 fs.copyFileSync(path.join(root, "dist", "lnulander.js"), path.join(site, "lnulander.js"));
+fs.mkdirSync(path.join(site, "art"), { recursive: true });
+for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png"]) {
+    fs.copyFileSync(path.join(root, "asset", asset), path.join(site, "art", asset));
+}
 fs.writeFileSync(path.join(site, ".nojekyll"), "");
 console.log("Web playtest packaged in site/");
