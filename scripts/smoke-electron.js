@@ -42,19 +42,33 @@ app.whenReady().then(async () => {
             path.join('site', 'index.html') : path.join('bin-debug', 'index.html');
         await win.loadFile(path.join(__dirname, '..', relative));
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const result = await win.webContents.executeJavaScript(`({
-            rune: typeof rune !== "undefined",
-            namespace: typeof lnulander !== "undefined",
-            application: typeof rune !== "undefined" &&
-                Boolean(rune.system.Application.instance),
-            canvasCount: document.querySelectorAll("canvas").length
-        })`);
+        const result = await win.webContents.executeJavaScript(`(() => {
+            const canvas = document.querySelector("canvas");
+            const ctx = canvas && canvas.getContext("2d");
+            const pixel = ctx ? Array.from(ctx.getImageData(200, 160, 1, 1).data) : [];
+            return {
+                rune: typeof rune !== "undefined",
+                namespace: typeof lnulander !== "undefined",
+                application: typeof rune !== "undefined" &&
+                    Boolean(rune.system.Application.instance),
+                model: typeof lnulander !== "undefined" &&
+                    Boolean(lnulander.model && lnulander.model.Landing),
+                canvasCount: document.querySelectorAll("canvas").length,
+                canvasSize: canvas ? [canvas.width, canvas.height] : [],
+                pixel: pixel
+            };
+        })()`);
         fs.mkdirSync(path.join(__dirname, '..', 'artifacts'), { recursive: true });
         const image = await win.webContents.capturePage();
         fs.writeFileSync(path.join(__dirname, '..', 'artifacts', process.argv.includes('--site') ? 'rune-web-smoke.png' : 'rune-smoke.png'), image.toPNG());
         console.log('Renderer smoke:', JSON.stringify(result));
-        if (!result.rune || !result.namespace || !result.application ||
-            result.canvasCount < 1 || errors.length) {
+        const webMode = process.argv.includes('--site');
+        const drawn = result.pixel.length === 4 &&
+            (result.pixel[0] > 0 || result.pixel[1] > 0 || result.pixel[2] > 0);
+        const works = webMode ?
+            (result.namespace && result.model && result.canvasCount === 1 && drawn) :
+            (result.rune && result.namespace && result.application && result.canvasCount === 1);
+        if (!works || errors.length) {
             throw new Error('Renderer smoke failed: ' + JSON.stringify(errors));
         }
         clearTimeout(timeout);

@@ -28,13 +28,10 @@ jobs:
         run: |
           npm run web:package
           npm run web:verify
-      - name: Create a ZIP without requiring Electron
-        run: |
-          cd site
-          zip -q -r ../LNU-Lander-Web.zip .
       - name: Upload playable browser version
         uses: actions/upload-artifact@v4
         with:
           name: LNU-Lander-Web
-          path: LNU-Lander-Web.zip
+          path: site/
           if-no-files-found: error
+          include-hidden-files: true
