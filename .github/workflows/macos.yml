@@ -28,6 +28,14 @@ jobs:
         run: |
           npm run check
           npm run build
+      - name: Start Rune renderer and capture screenshot
+        run: npx electron scripts/smoke-electron.js
+      - name: Upload renderer screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: LNU-Lander-renderer-${{ matrix.arch }}
+          path: artifacts/rune-smoke.png
+          if-no-files-found: error
       - name: Package desktop application
         run: |
           npx --yes @electron/packager@18.3.6 . "LNU Lander" --platform=darwin --arch="${{ matrix.arch }}" --out=release --overwrite --ignore='^/src/' --ignore='^/tests/' --ignore='^/\.github/' --ignore='^/asset/' --ignore='^/scripts/' --ignore='^/bin-debug/' --ignore='^/\.git/'
