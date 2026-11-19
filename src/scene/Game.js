@@ -51,7 +51,7 @@ lnulander.scene.Game.prototype.update = function(step) {
     for (var i = 0; i < this.m_fuelSegments.length; i++) {
         this.m_fuelSegments[i].visible = i < segments;
     }
-    this.m_velocity.text = Math.abs(this.m_flight.vy).toFixed(1);
+    this.m_velocity.text = Math.abs(this.m_flight.vy).toFixed(1) + "m/s";
     if (this.m_flight.status === "landed") {
         this.m_message.text = "LANDED! PRESS R";
         this.m_message.visible = true;
@@ -77,13 +77,13 @@ lnulander.scene.Game.prototype.m_initHud = function() {
         this.m_fuelSegments.push(seg);
     }
     // Update the sample velocity text from the background with the actual value.
-    var speedBack = new rune.display.Artboard(376, 7, 30, 11);
+    var speedBack = new rune.display.Artboard(374, 7, 36, 11);
     speedBack.backgroundColor = "#0a1424";
     this.stage.addChild(speedBack);
     this.m_velocity = new rune.text.BitmapField("0.0", rune.text.BitmapFormat.FONT_SMALL);
     this.m_velocity.autoSize = true;
-    this.m_velocity.x = 379;
-    this.m_velocity.y = 7;
+    this.m_velocity.x = 374;
+    this.m_velocity.y = 8;
     this.stage.addChild(this.m_velocity);
 
     this.m_message = new rune.text.BitmapField("", rune.text.BitmapFormat.FONT_SMALL);
