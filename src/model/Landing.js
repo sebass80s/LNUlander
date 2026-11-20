@@ -27,6 +27,18 @@ lnulander.model.Landing.zoomForAltitude = function(y) {
     return 0.75 + 0.68 * t;
 };
 
+/**
+ * One camera easing step toward the desired zoom at the craft's altitude.
+ * Both approach and retreat use the same rule: there is no one-way zoom latch.
+ * Zoom changes never affect the simulated position or collision model.
+ */
+lnulander.model.Landing.advanceCameraZoom = function(currentZoom, landerY) {
+    var target = lnulander.model.Landing.zoomForAltitude(landerY);
+    var next = currentZoom + (target - currentZoom) * 0.055;
+    // Snap tiny floating-point remnants so the camera settles completely.
+    return Math.abs(target - next) < 0.0001 ? target : next;
+};
+
 lnulander.model.Landing.prototype.reset = function() {
     this.x = 830;
     this.y = 155;

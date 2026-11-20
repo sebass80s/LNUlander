@@ -70,9 +70,11 @@ lnulander.scene.Game.prototype.update = function(step) {
     this.m_flame.y = this.m_ship.y + 184;
     this.m_flame.visible = this.m_flight.thrusting;
 
-    var desired = lnulander.model.Landing.zoomForAltitude(this.m_flight.y);
-    var current = this.m_camera.viewport.zoom;
-    this.m_camera.viewport.zoomTo(current + (desired - current) * 0.055);
+    // Bidirectional, altitude-driven zoom: descending approaches the ground
+    // and zooms in; climbing back up automatically zooms out.
+    var zoom = lnulander.model.Landing.advanceCameraZoom(
+        this.m_camera.viewport.zoom, this.m_flight.y);
+    this.m_camera.viewport.zoomTo(zoom);
 
     var percent = this.m_flight.fuel / lnulander.model.Landing.INITIAL_FUEL;
     var segments = Math.ceil(this.m_fuelSegments.length * percent);

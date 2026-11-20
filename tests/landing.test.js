@@ -115,3 +115,48 @@ test("zoom stays inside Rune SDK viewport range at extreme altitudes", () => {
         assert.ok(z>=0.25 && z<=4);
     }
 });
+
+test("climbing away from the landing pad reverses the camera zoom", () => {
+    const L = makeLander();
+    const ground = L.PAD_Y - L.HEIGHT;
+    let zoom = 0.75;
+
+    // Move toward the landing pad, allowing the actual camera easing to settle.
+    for (let i = 0; i < 100; i++) {
+        zoom = L.advanceCameraZoom(zoom, ground);
+    }
+    assert.ok(zoom > 1.42, "close to ground should zoom in");
+
+    // Thrusting upwards reduces world y. The camera should zoom OUT again.
+    const afterClimbing = L.advanceCameraZoom(zoom, 350);
+    assert.ok(afterClimbing < zoom, "zoom must decrease as altitude increases");
+
+    zoom = afterClimbing;
+    for (let i = 0; i < 160; i++) {
+        zoom = L.advanceCameraZoom(zoom, 100);
+    }
+    assert.ok(Math.abs(zoom - 0.75) < 0.001,
+        "zoom should smoothly return to the original wide view");
+});
+
+test("camera zoom reverses repeatedly without hysteresis or jumping", () => {
+    const L = makeLander();
+    let zoom = L.zoomForAltitude(130);
+    let last = zoom;
+    // Descend and follow: zoom increases monotonically and is bounded.
+    for (let y = 150; y <= 1000; y += 20) {
+        zoom = L.advanceCameraZoom(zoom, y);
+        assert.ok(zoom >= last - 1e-9);
+        assert.ok(zoom <= 1.43);
+        last = zoom;
+    }
+    // Reverse the direction: camera zoom responds to rising altitude.
+    let startedZoomingOut = false;
+    for (let y = 1000; y >= 100; y -= 20) {
+        const next = L.advanceCameraZoom(zoom, y);
+        if (next < zoom) startedZoomingOut = true;
+        assert.ok(next >= 0.75 && next <= 1.43);
+        zoom = next;
+    }
+    assert.equal(startedZoomingOut, true);
+});
