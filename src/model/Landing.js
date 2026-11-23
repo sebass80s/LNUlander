@@ -17,6 +17,41 @@ lnulander.model.Landing.MAX_VERTICAL_SPEED = 1.8;
 lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 1.4;
 lnulander.model.Landing.INITIAL_FUEL = 560;
 
+// A large pixel-art tree blocks the direct line of descent from the new spawn.
+// Circles follow the canopy silhouette; the narrow trunk remains solid.
+lnulander.model.Landing.TREE_CROWNS = [
+    {x: 596, y: 936, radius: 92},
+    {x: 704, y: 920, radius: 94},
+    {x: 649, y: 836, radius: 104}
+];
+lnulander.model.Landing.TREE_TRUNK = {left: 631, right: 677, top: 998, bottom: 1325};
+
+/**
+ * Test the visible hull (slightly inset from transparent sprite margins)
+ * against the tree's foliage and trunk. Keeps gameplay frame-independent.
+ */
+lnulander.model.Landing.overlapsTree = function(x, y) {
+    var C = lnulander.model.Landing;
+    var left = x + 24;
+    var right = x + C.WIDTH - 24;
+    var top = y + 20;
+    var bottom = y + C.HEIGHT - 14;
+    var trunk = C.TREE_TRUNK;
+    if (left < trunk.right && right > trunk.left &&
+        top < trunk.bottom && bottom > trunk.top) return true;
+
+    for (var i = 0; i < C.TREE_CROWNS.length; i++) {
+        var crown = C.TREE_CROWNS[i];
+        // Closest point on the hull box to this circular foliage cluster.
+        var px = Math.max(left, Math.min(crown.x, right));
+        var py = Math.max(top, Math.min(crown.y, bottom));
+        var dx = px - crown.x;
+        var dy = py - crown.y;
+        if (dx * dx + dy * dy < crown.radius * crown.radius) return true;
+    }
+    return false;
+};
+
 /** Desired Rune CameraViewport.zoom based on altitude above the grass. */
 lnulander.model.Landing.WIDE_ZOOM = 0.48;
 lnulander.model.Landing.CLOSE_ZOOM = 1.12;
@@ -45,12 +80,13 @@ lnulander.model.Landing.advanceCameraZoom = function(currentZoom, landerY) {
 };
 
 lnulander.model.Landing.prototype.reset = function() {
-    this.x = 830;
+    this.x = 230;
     this.y = 155;
     this.vx = 0;
     this.vy = 0;
     this.fuel = lnulander.model.Landing.INITIAL_FUEL;
     this.status = "flying";
+    this.crashReason = "";
     this.thrusting = false;
 };
 
@@ -87,6 +123,10 @@ lnulander.model.Landing.prototype.tick = function(controls) {
     }
     if (this.x < 0 || this.x + C.WIDTH > C.WORLD_WIDTH) {
         this.status = "crashed";
+        this.crashReason = "boundary";
+    } else if (C.overlapsTree(this.x, this.y)) {
+        this.status = "crashed";
+        this.crashReason = "tree";
     } else {
         var intersectsPad = this.x < C.PAD_RIGHT && this.x + C.WIDTH > C.PAD_LEFT;
         if (intersectsPad && this.y + C.HEIGHT >= C.PAD_Y) {
@@ -95,9 +135,11 @@ lnulander.model.Landing.prototype.tick = function(controls) {
                 this.x + C.WIDTH <= C.PAD_RIGHT &&
                 this.vy >= 0 && this.vy <= C.MAX_VERTICAL_SPEED &&
                 Math.abs(this.vx) <= C.MAX_HORIZONTAL_SPEED ? "landed" : "crashed";
+            if (this.status === "crashed") this.crashReason = "pad";
         } else if (this.y + C.HEIGHT >= C.GROUND_Y) {
             this.y = C.GROUND_Y - C.HEIGHT;
             this.status = "crashed";
+            this.crashReason = "ground";
         }
     }
     if (this.status !== "flying") {

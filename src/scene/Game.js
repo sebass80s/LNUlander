@@ -7,6 +7,7 @@ lnulander.scene.Game = function() {
     this.m_flight = null;
     this.m_camera = null;
     this.m_background = null;
+    this.m_tree = null;
     this.m_ship = null;
     this.m_flame = null;
     this.m_fuelSegments = [];
@@ -47,6 +48,9 @@ lnulander.scene.Game.prototype.init = function() {
         document.getElementById("lnu-h-house"));
     rightExtension.flippedX = true;
     this.stage.addChildAt(rightExtension, 1);
+
+    // A tree that actually blocks the approach, drawn above the background.
+    this.m_drawTree();
 
     this.m_flame = new rune.display.Graphic(0, 0, 37, 55,
         document.getElementById("lnu-exhaust"));
@@ -109,11 +113,62 @@ lnulander.scene.Game.prototype.update = function(step) {
         this.m_message.text = "SUCCESS! PRESS R TO FLY AGAIN";
         this.m_message.visible = true;
     } else if (this.m_flight.status === "crashed") {
-        this.m_message.text = "CRASH! PRESS R TO RETRY";
+        this.m_message.text = this.m_flight.crashReason === "tree" ?
+            "TREE HIT! PRESS R TO RETRY" : "CRASH! PRESS R TO RETRY";
         this.m_message.visible = true;
     } else {
         this.m_message.visible = false;
     }
+};
+
+/**
+ * A solid, readable, pixel-art tree occupying the approach corridor.
+ * The foliage and trunk match the collision zones in Landing.js.
+ */
+lnulander.scene.Game.prototype.m_drawTree = function() {
+    var art = new rune.display.Artboard(470, 700, 375, 630);
+    var g = art.graphics;
+    var pixels = [
+        [153, 299, 54, 327, "#49301e"],
+        [162, 296, 35, 320, "#80522c"],
+        [174, 309, 13, 298, "#b27735"],
+        [124, 281, 79, 25, "#55351f"],
+        [184, 266, 72, 26, "#55351f"],
+        [109, 269, 90, 14, "#99632f"],
+        [184, 260, 70, 14, "#a86a32"],
+        // Dark stepped outline to keep the silhouette visible in flight.
+        [64, 181, 231, 103, "#123b23"],
+        [30, 145, 290, 114, "#17472a"],
+        [75, 93, 224, 154, "#17472a"],
+        [123, 50, 156, 171, "#17472a"],
+        [153, 28, 112, 182, "#17472a"],
+        // Several blocky overlapping green crown masses.
+        [44, 160, 262, 75, "#266d33"],
+        [73, 128, 233, 110, "#358b3a"],
+        [103, 86, 185, 125, "#277c37"],
+        [138, 57, 133, 131, "#439e40"],
+        [169, 35, 72, 92, "#5bb746"],
+        [62, 172, 87, 53, "#419f41"],
+        [223, 146, 71, 53, "#419f41"],
+        [116, 98, 62, 49, "#72c64b"],
+        [204, 92, 47, 38, "#6dc344"],
+        [79, 165, 59, 28, "#8cce46"],
+        [255, 174, 39, 19, "#83c74d"],
+        [152, 66, 49, 27, "#9bd84d"],
+        [176, 157, 58, 34, "#195e30"],
+        [114, 216, 67, 23, "#266e34"],
+        [225, 209, 51, 24, "#1d662f"],
+        [86, 195, 34, 13, "#b2df58"],
+        [195, 111, 37, 13, "#a8da50"],
+        [156, 86, 28, 11, "#b6e05a"],
+        [242, 157, 40, 14, "#b2d851"]
+    ];
+    for (var i = 0; i < pixels.length; i++) {
+        var p = pixels[i];
+        g.drawRectFill(p[0], p[1], p[2], p[3], p[4]);
+    }
+    this.stage.addChild(art);
+    this.m_tree = art;
 };
 
 /** Fixed HUD objects belong to the camera, not the zooming world stage. */
@@ -151,8 +206,8 @@ lnulander.scene.Game.prototype.m_initHud = function() {
     this.m_velocity = this.m_text("V-SPEED 0.0", 1071, 35, 2);
     this.m_altitude = this.m_text("ALT 0", 800, 81, 2);
 
-    this.m_panel(18, 671, 706, 31, "#07152c");
-    this.m_text("UP/SPACE THRUST  A/D STEER  R RESTART", 28, 679, 2);
+    this.m_panel(18, 671, 770, 31, "#07152c");
+    this.m_text("UP/SPACE THRUST  A/D STEER  DODGE TREE  R RESTART", 28, 679, 2);
     this.m_message = this.m_text("", 374, 340, 3);
     this.m_message.visible = false;
 };
