@@ -36,10 +36,12 @@ test("thrust brakes the fall and consumes fuel", () => {
 
 test("steering works and no input changes the sign of acceleration", () => {
     const ship = new (makeLander())();
+    var initial = ship.vx;
     ship.tick({up:false,left:true,right:false});
-    assert.ok(ship.vx<0);
+    var leftSteered = ship.vx;
+    assert.ok(leftSteered < initial, "left input must reduce lateral speed");
     ship.tick({up:false,left:false,right:true});
-    assert.ok(ship.vx>-0.092);
+    assert.ok(ship.vx > leftSteered, "right input must increase lateral speed");
 });
 
 test("slow touchdown fully inside the grass H-pad wins", () => {

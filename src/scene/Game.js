@@ -139,22 +139,22 @@ lnulander.scene.Game.prototype.m_drawTree = function() {
  */
 lnulander.scene.Game.prototype.m_drawNarrowPad = function() {
     var C = lnulander.model.Landing;
-    var pad = new rune.display.Artboard(810, 1229, 420, 30);
+    var pad = new rune.display.Artboard(810, 1217, 420, 42);
     var g = pad.graphics;
-    g.drawRectFill(0, 0, 420, 8, "#213137");
-    g.drawRectFill(C.PAD_LEFT - 810, 0,
+    g.drawRectFill(0, 12, 420, 8, "#213137");
+    g.drawRectFill(C.PAD_LEFT - 810, 12,
         C.PAD_RIGHT - C.PAD_LEFT, 8, "#f5ee41");
-    g.drawRectFill(0, 0, C.PAD_LEFT - 810, 8, "#aa2934");
-    g.drawRectFill(C.PAD_RIGHT - 810, 0,
+    g.drawRectFill(0, 12, C.PAD_LEFT - 810, 8, "#aa2934");
+    g.drawRectFill(C.PAD_RIGHT - 810, 12,
         1230 - C.PAD_RIGHT, 8, "#aa2934");
     for (var x = 0; x < 420; x += 17) {
         if (x < C.PAD_LEFT - 810 || x >= C.PAD_RIGHT - 810) {
-            g.drawRectFill(x, 0, 7, 8, "#ff6165");
+            g.drawRectFill(x, 12, 7, 8, "#ff6165");
         }
     }
     // Gate posts indicate exact safe touchdown span at every camera zoom.
-    g.drawRectFill(C.PAD_LEFT - 810 - 5, -12, 5, 20, "#f93c4f");
-    g.drawRectFill(C.PAD_RIGHT - 810, -12, 5, 20, "#f93c4f");
+    g.drawRectFill(C.PAD_LEFT - 810 - 5, 0, 5, 20, "#f93c4f");
+    g.drawRectFill(C.PAD_RIGHT - 810, 0, 5, 20, "#f93c4f");
     this.stage.addChild(pad);
     this.m_padMarker = pad;
 };
