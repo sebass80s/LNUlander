@@ -7,6 +7,7 @@ lnulander.scene.Game = function() {
     this.m_flight = null;
     this.m_camera = null;
     this.m_background = null;
+    this.m_tree = null;
     this.m_ship = null;
     this.m_flame = null;
     this.m_fuelSegments = [];
@@ -47,6 +48,9 @@ lnulander.scene.Game.prototype.init = function() {
         document.getElementById("lnu-h-house"));
     rightExtension.flippedX = true;
     this.stage.addChildAt(rightExtension, 1);
+
+    // A tree that actually blocks the approach, drawn above the background.
+    this.m_drawTree();
 
     this.m_flame = new rune.display.Graphic(0, 0, 37, 55,
         document.getElementById("lnu-exhaust"));
@@ -109,11 +113,70 @@ lnulander.scene.Game.prototype.update = function(step) {
         this.m_message.text = "SUCCESS! PRESS R TO FLY AGAIN";
         this.m_message.visible = true;
     } else if (this.m_flight.status === "crashed") {
-        this.m_message.text = "CRASH! PRESS R TO RETRY";
+        this.m_message.text = this.m_flight.crashReason === "tree" ?
+            "TREE HIT! PRESS R TO RETRY" : "CRASH! PRESS R TO RETRY";
         this.m_message.visible = true;
     } else {
         this.m_message.visible = false;
     }
+};
+
+/**
+ * A solid, readable, pixel-art tree occupying the approach corridor.
+ * The foliage and trunk match the collision zones in Landing.js.
+ */
+lnulander.scene.Game.prototype.m_drawTree = function() {
+    var art = new rune.display.Artboard(470, 700, 375, 630);
+    var g = art.graphics;
+    // Trunk silhouette and warm pixel-art bark with branching details.
+    g.drawRectFill(158, 275, 55, 351, "#3c291e");
+    g.drawRectFill(166, 277, 42, 347, "#815026");
+    g.drawRectFill(173, 288, 15, 320, "#ae742f");
+    g.drawRectFill(185, 298, 8, 286, "#bf8a39");
+    g.drawRectFill(117, 257, 87, 24, "#4b2d20");
+    g.drawRectFill(189, 245, 77, 23, "#4b2d20");
+    g.drawRectFill(132, 257, 72, 10, "#a16b31");
+    g.drawRectFill(197, 246, 60, 10, "#a16b31");
+    g.drawRectFill(162, 430, 10, 90, "#664022");
+
+    // The foliage is made of many small, crisp leaves. Its three cluster
+    // centers exactly match the circular collision areas in Landing.js.
+    var circles = [
+        {x: 126, y: 236, r: 92},
+        {x: 234, y: 220, r: 94},
+        {x: 179, y: 136, r: 104}
+    ];
+    var colors = ["#195b2d", "#246e30", "#2a8135", "#34943a",
+        "#42a23c", "#58b548", "#6ac449", "#84ce49", "#99d957"];
+    for (var y = 26; y < 333; y += 10) {
+        for (var x = 20; x < 350; x += 10) {
+            var inside = false;
+            var nearEdge = false;
+            for (var i = 0; i < circles.length; i++) {
+                var c = circles[i];
+                var dx = x + 5 - c.x;
+                var dy = y + 5 - c.y;
+                var d2 = dx * dx + dy * dy;
+                if (d2 < c.r * c.r) {
+                    inside = true;
+                    if (d2 > (c.r - 14) * (c.r - 14)) nearEdge = true;
+                }
+            }
+            if (!inside) continue;
+            // Static seeded checker texture: consistent across every frame.
+            var seed = Math.abs((x * 97 + y * 57 + x * y * 13) % 139);
+            if (nearEdge && seed % 7 === 0) continue;
+            var shade = Math.floor((seed % 7) +
+                (y < 185 ? 1 : -1) + (x < 180 ? 1 : 0));
+            shade = Math.max(0, Math.min(colors.length - 1, shade));
+            g.drawRectFill(x, y, 10, 10, colors[shade]);
+            if (seed % 11 === 0 && y < 240) {
+                g.drawRectFill(x + 2, y + 2, 4, 4, "#b3df61");
+            }
+        }
+    }
+    this.stage.addChild(art);
+    this.m_tree = art;
 };
 
 /** Fixed HUD objects belong to the camera, not the zooming world stage. */
@@ -151,8 +214,8 @@ lnulander.scene.Game.prototype.m_initHud = function() {
     this.m_velocity = this.m_text("V-SPEED 0.0", 1071, 35, 2);
     this.m_altitude = this.m_text("ALT 0", 800, 81, 2);
 
-    this.m_panel(18, 671, 706, 31, "#07152c");
-    this.m_text("UP/SPACE THRUST  A/D STEER  R RESTART", 28, 679, 2);
+    this.m_panel(18, 671, 770, 31, "#07152c");
+    this.m_text("UP/SPACE THRUST  A/D STEER  DODGE TREE  R RESTART", 28, 679, 2);
     this.m_message = this.m_text("", 374, 340, 3);
     this.m_message.visible = false;
 };

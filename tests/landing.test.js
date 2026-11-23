@@ -94,6 +94,8 @@ test("restart restores full fuel and initial altitude", () => {
     ship.reset();
     assert.equal(ship.status,"flying");
     assert.equal(ship.y,155);
+    assert.equal(ship.x,230);
+    assert.equal(ship.crashReason,"");
     assert.equal(ship.fuel,560);
 });
 
@@ -199,4 +201,58 @@ test("ascent restores full wide view after a low-level approach", () => {
     let zoom = L.CLOSE_ZOOM;
     for (let i = 0; i < 180; i++) zoom = L.advanceCameraZoom(zoom, 300);
     assert.equal(zoom, L.WIDE_ZOOM);
+});
+
+test("spawn is well left of the landing pad and tree forces steering", () => {
+    const L=makeLander(), ship=new L();
+    assert.ok(ship.x + L.WIDTH < L.PAD_LEFT);
+    assert.ok(ship.x + L.WIDTH < L.TREE_CROWNS[0].x);
+    assert.equal(L.overlapsTree(ship.x,ship.y),false);
+});
+
+test("a direct descent through the foliage crashes into the tree", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=530;
+    ship.y=770;
+    ship.vy=2;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status,"crashed");
+    assert.equal(ship.crashReason,"tree");
+});
+
+test("tree trunk is solid even below the canopy", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=615;
+    ship.y=1090;
+    ship.vy=1;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status,"crashed");
+    assert.equal(ship.crashReason,"tree");
+});
+
+test("flying high over the tree is safe and the landing pad remains clear", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=585;
+    ship.y=360;
+    ship.vy=0.5;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status,"flying");
+    assert.equal(L.overlapsTree(925,L.PAD_Y-L.HEIGHT),false);
+});
+
+test("flying to the left or right of the tree is safe", () => {
+    const L=makeLander();
+    assert.equal(L.overlapsTree(150,820),false);
+    assert.equal(L.overlapsTree(910,820),false);
+});
+
+test("crash reason is cleared on retry", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=530;
+    ship.y=770;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.crashReason,"tree");
+    ship.reset();
+    assert.equal(ship.crashReason,"");
+    assert.equal(ship.status,"flying");
 });
