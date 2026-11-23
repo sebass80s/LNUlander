@@ -198,15 +198,26 @@ lnulander.model.Landing.prototype.tick = function(controls) {
     this.x += this.vx;
     this.y += this.vy;
 
+    // The 0..WORLD_WIDTH limits are invisible because the camera shows
+    // mirrored scenery outside the primary background at wide zoom.
+    // Instead of exploding in empty sky, stop horizontal motion at the map
+    // edge. The pilot can immediately steer back toward the landing pad.
+    // Do not clamp vertical motion here; collisions with trees and ground
+    // are still lethal as normal.
+    if (this.x < 0) {
+        this.x = 0;
+        this.vx = Math.max(0, this.vx);
+    } else if (this.x + C.WIDTH > C.WORLD_WIDTH) {
+        this.x = C.WORLD_WIDTH - C.WIDTH;
+        this.vx = Math.min(0, this.vx);
+    }
+
     if (this.y < 0) {
         this.y = 0;
         this.vy = Math.max(0, this.vy);
     }
     var hitTree = C.treeHitAt(this.x, this.y);
-    if (this.x < 0 || this.x + C.WIDTH > C.WORLD_WIDTH) {
-        this.status = "crashed";
-        this.crashReason = "boundary";
-    } else if (hitTree !== null) {
+    if (hitTree !== null) {
         this.status = "crashed";
         this.crashReason = "tree";
         this.collisionTree = hitTree;

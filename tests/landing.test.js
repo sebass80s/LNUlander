@@ -405,3 +405,65 @@ test("visible hull contacts tree trunk while near misses do not", () => {
     assert.equal(L.m_ellipseHitsRect({x:1590,y:1150,rx:35,ry:40},oak.trunks[0]),true);
     assert.equal(L.m_ellipseHitsRect({x:1400,y:1150,rx:35,ry:40},oak.trunks[0]),false);
 });
+
+test("left world edge at high altitude no longer causes an invisible crash", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 0.1;
+    ship.y = L.PAD_Y - L.HEIGHT - 870;
+    ship.vx = -3.5;
+    ship.vy = 0.2;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.x, 0);
+    assert.equal(ship.vx, 0);
+    assert.equal(ship.status, "flying");
+    assert.equal(ship.crashReason, "");
+    assert.equal(L.treeHitAt(ship.x, ship.y), null);
+});
+
+test("holding left at the invisible edge does not repeatedly crash", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 0;
+    ship.y = 174;
+    for (let i = 0; i < 40; i++) {
+        ship.tick({up:false,left:true,right:false});
+        assert.equal(ship.status, "flying", "crashed on tick " + i);
+        assert.equal(ship.x, 0);
+        assert.equal(ship.vx, 0);
+    }
+    assert.ok(ship.fuel < L.INITIAL_FUEL);
+});
+
+test("ship can steer right away from the world edge and resume flying", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 0;
+    ship.y = 174;
+    ship.vx = -2;
+    ship.tick({up:false,left:false,right:true});
+    assert.equal(ship.status, "flying");
+    assert.equal(ship.x, 0);
+    ship.tick({up:false,left:false,right:true});
+    assert.ok(ship.x > 0);
+    assert.ok(ship.vx > 0);
+});
+
+test("right world edge also stops rather than exploding in visible sky", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = L.WORLD_WIDTH - L.WIDTH - 0.2;
+    ship.y = 85;
+    ship.vx = 3.5;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.x, L.WORLD_WIDTH - L.WIDTH);
+    assert.equal(ship.vx, 0);
+    assert.equal(ship.status, "flying");
+});
+
+test("actual tree contact remains lethal after edge correction", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 1450;
+    ship.y = 655;
+    ship.vx = 0;
+    ship.vy = 1;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status, "crashed");
+    assert.equal(ship.crashReason, "tree");
+});
