@@ -34,6 +34,20 @@ lnulander.scene.Game.prototype.init = function() {
         document.getElementById("lnu-h-house"));
     this.stage.addChild(this.m_background);
 
+    // Mirror the outer edges of the approved landscape to fill the extra
+    // horizontal camera view at 0.48x. Unlike stretching the art, reflection
+    // retains native texel detail and avoids abrupt blue side columns.
+    var leftExtension = new rune.display.Graphic(
+        -C.WORLD_WIDTH, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
+        document.getElementById("lnu-h-house"));
+    leftExtension.flippedX = true;
+    this.stage.addChildAt(leftExtension, 1);
+    var rightExtension = new rune.display.Graphic(
+        C.WORLD_WIDTH, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
+        document.getElementById("lnu-h-house"));
+    rightExtension.flippedX = true;
+    this.stage.addChildAt(rightExtension, 1);
+
     this.m_flame = new rune.display.Graphic(0, 0, 37, 55,
         document.getElementById("lnu-exhaust"));
     this.m_flame.visible = false;
