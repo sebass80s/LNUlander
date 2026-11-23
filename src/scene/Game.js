@@ -128,44 +128,52 @@ lnulander.scene.Game.prototype.update = function(step) {
 lnulander.scene.Game.prototype.m_drawTree = function() {
     var art = new rune.display.Artboard(470, 700, 375, 630);
     var g = art.graphics;
-    var pixels = [
-        [153, 299, 54, 327, "#49301e"],
-        [162, 296, 35, 320, "#80522c"],
-        [174, 309, 13, 298, "#b27735"],
-        [124, 281, 79, 25, "#55351f"],
-        [184, 266, 72, 26, "#55351f"],
-        [109, 269, 90, 14, "#99632f"],
-        [184, 260, 70, 14, "#a86a32"],
-        // Dark stepped outline to keep the silhouette visible in flight.
-        [64, 181, 231, 103, "#123b23"],
-        [30, 145, 290, 114, "#17472a"],
-        [75, 93, 224, 154, "#17472a"],
-        [123, 50, 156, 171, "#17472a"],
-        [153, 28, 112, 182, "#17472a"],
-        // Several blocky overlapping green crown masses.
-        [44, 160, 262, 75, "#266d33"],
-        [73, 128, 233, 110, "#358b3a"],
-        [103, 86, 185, 125, "#277c37"],
-        [138, 57, 133, 131, "#439e40"],
-        [169, 35, 72, 92, "#5bb746"],
-        [62, 172, 87, 53, "#419f41"],
-        [223, 146, 71, 53, "#419f41"],
-        [116, 98, 62, 49, "#72c64b"],
-        [204, 92, 47, 38, "#6dc344"],
-        [79, 165, 59, 28, "#8cce46"],
-        [255, 174, 39, 19, "#83c74d"],
-        [152, 66, 49, 27, "#9bd84d"],
-        [176, 157, 58, 34, "#195e30"],
-        [114, 216, 67, 23, "#266e34"],
-        [225, 209, 51, 24, "#1d662f"],
-        [86, 195, 34, 13, "#b2df58"],
-        [195, 111, 37, 13, "#a8da50"],
-        [156, 86, 28, 11, "#b6e05a"],
-        [242, 157, 40, 14, "#b2d851"]
+    // Trunk silhouette and warm pixel-art bark with branching details.
+    g.drawRectFill(158, 275, 55, 351, "#3c291e");
+    g.drawRectFill(166, 277, 42, 347, "#815026");
+    g.drawRectFill(173, 288, 15, 320, "#ae742f");
+    g.drawRectFill(185, 298, 8, 286, "#bf8a39");
+    g.drawRectFill(117, 257, 87, 24, "#4b2d20");
+    g.drawRectFill(189, 245, 77, 23, "#4b2d20");
+    g.drawRectFill(132, 257, 72, 10, "#a16b31");
+    g.drawRectFill(197, 246, 60, 10, "#a16b31");
+    g.drawRectFill(162, 430, 10, 90, "#664022");
+
+    // The foliage is made of many small, crisp leaves. Its three cluster
+    // centers exactly match the circular collision areas in Landing.js.
+    var circles = [
+        {x: 126, y: 236, r: 92},
+        {x: 234, y: 220, r: 94},
+        {x: 179, y: 136, r: 104}
     ];
-    for (var i = 0; i < pixels.length; i++) {
-        var p = pixels[i];
-        g.drawRectFill(p[0], p[1], p[2], p[3], p[4]);
+    var colors = ["#195b2d", "#246e30", "#2a8135", "#34943a",
+        "#42a23c", "#58b548", "#6ac449", "#84ce49", "#99d957"];
+    for (var y = 26; y < 333; y += 10) {
+        for (var x = 20; x < 350; x += 10) {
+            var inside = false;
+            var nearEdge = false;
+            for (var i = 0; i < circles.length; i++) {
+                var c = circles[i];
+                var dx = x + 5 - c.x;
+                var dy = y + 5 - c.y;
+                var d2 = dx * dx + dy * dy;
+                if (d2 < c.r * c.r) {
+                    inside = true;
+                    if (d2 > (c.r - 14) * (c.r - 14)) nearEdge = true;
+                }
+            }
+            if (!inside) continue;
+            // Static seeded checker texture: consistent across every frame.
+            var seed = Math.abs((x * 97 + y * 57 + x * y * 13) % 139);
+            if (nearEdge && seed % 7 === 0) continue;
+            var shade = Math.floor((seed % 7) +
+                (y < 185 ? 1 : -1) + (x < 180 ? 1 : 0));
+            shade = Math.max(0, Math.min(colors.length - 1, shade));
+            g.drawRectFill(x, y, 10, 10, colors[shade]);
+            if (seed % 11 === 0 && y < 240) {
+                g.drawRectFill(x + 2, y + 2, 4, 4, "#b3df61");
+            }
+        }
     }
     this.stage.addChild(art);
     this.m_tree = art;
