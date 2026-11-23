@@ -63,3 +63,7 @@ The trees actually painted into `grass-world.webp` now all have physics geometry
 ## v0.5.4 precision collision improvement
 
 Tree collisions use four small ellipse hitboxes over the **actual solid portions of the lander sprite**, rather than treating the whole partly transparent 190×198 rectangular sprite as solid. The decorative flag is excluded. Painted foliage uses tighter overlapping elliptical bounds, trunks remain solid, and Rune camera zoom does not alter collision calculations. The same full game is packaged as a browser ZIP.
+
+## v0.5.5: world-edge collision fix
+
+A reported high-altitude 'CRASH' to the left of the visible trees was caused by the invisible primary-world boundary at x=0, not the tree hitboxes. The backdrop is mirrored outside the primary world at wide zoom, so a lethal boundary in apparent empty sky was unfair. Horizontal world edges now stop the craft's horizontal motion without killing it, and steering back into the level is always possible. The real tree, pad and ground collisions still cause crashes. Regression tests cover both map edges, held steering, recovery, and tree contact.
