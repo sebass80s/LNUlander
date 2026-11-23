@@ -129,7 +129,7 @@ lnulander.scene.Game.prototype.update = function(step) {
  */
 lnulander.scene.Game.prototype.m_drawTree = function() {
     this.m_tree = new rune.display.Graphic(
-        500, 720, 420, 600, document.getElementById("lnu-tree"));
+        458, 690, 504, 672, document.getElementById("lnu-tree"));
     this.stage.addChild(this.m_tree);
 };
 
