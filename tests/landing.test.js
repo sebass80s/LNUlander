@@ -251,8 +251,8 @@ test("flying to the left or right of the tree is safe", () => {
 
 test("crash reason is cleared on retry", () => {
     const L=makeLander(), ship=new L();
-    ship.x=530;
-    ship.y=770;
+    ship.x=620;
+    ship.y=825;
     ship.tick({up:false,left:false,right:false});
     assert.equal(ship.crashReason,"tree");
     ship.reset();
@@ -301,4 +301,16 @@ test("v0.5: the tree crown hits and the center of the pad is unobstructed", () =
     assert.equal(L.overlapsTree(640,850),true);
     assert.equal(L.overlapsTree(970,L.PAD_Y-L.HEIGHT),false);
     assert.equal(L.overlapsTree(130,850),false);
+});
+
+test("v0.5.1: obstacle geometry matches the scaled tree, clear of the pad", () => {
+    const L = makeLander();
+    assert.equal(L.TREE_TRUNK.left, 760);
+    assert.equal(L.TREE_TRUNK.right, 792);
+    assert.equal(L.TREE_TRUNK.bottom, L.GROUND_Y);
+    assert.ok(L.TREE_CROWNS.every(c => c.radius <= 80));
+    assert.ok(L.TREE_CROWNS.every(c => c.x + c.radius < L.PAD_LEFT));
+    assert.equal(L.overlapsTree(955, L.PAD_Y - L.HEIGHT), false);
+    assert.equal(L.overlapsTree(620, 825), true);
+    assert.equal(L.overlapsTree(150, 825), false);
 });
