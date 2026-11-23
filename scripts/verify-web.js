@@ -11,7 +11,7 @@ assert.match(html, /lnulander\.bootstrap\(\)/);
 assert.ok(script.length > 500000, "Rune SDK was not included in the compiled bundle");
 assert.ok(fs.existsSync(path.join(dir, "style.css")));
 assert.ok(fs.existsSync(path.join(dir, ".nojekyll")));
-for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", "campus-tree.png"]) {
+for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png"]) {
     assert.ok(fs.statSync(path.join(dir, "art", asset)).size > 100, asset + " missing or empty");
 }
 assert.match(html, /art\/grass-world\.webp/);

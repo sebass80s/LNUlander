@@ -17,16 +17,17 @@ lnulander.model.Landing.MAX_VERTICAL_SPEED = 1.45;
 lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 0.95;
 lnulander.model.Landing.INITIAL_FUEL = 520;
 
-// Campus tree sprite is rendered at (640, 952), 280 x 373 pixels.
-// A smaller foreground obstacle keeps H-huset and the pad readable.
-// Crown circles and solid trunk are aligned with the visible tree image.
+// Built-in painted tree at the LEFT edge of the existing H-house backdrop.
+// No separately drawn sprite: these circles approximate its visible foliage.
 lnulander.model.Landing.TREE_CROWNS = [
-    {x: 770, y: 1040, radius: 78},
-    {x: 705, y: 1105, radius: 72},
-    {x: 828, y: 1110, radius: 68},
-    {x: 790, y: 1180, radius: 52}
+    {x: 80, y: 695, radius: 170},
+    {x: 205, y: 780, radius: 165},
+    {x: 100, y: 925, radius: 150},
+    {x: 290, y: 920, radius: 117}
 ];
-lnulander.model.Landing.TREE_TRUNK = {left: 760, right: 792, top: 1140, bottom: 1325};
+lnulander.model.Landing.TREE_TRUNK = {
+    left: 65, right: 110, top: 930, bottom: 1255
+};
 
 /**
  * Test the visible hull (slightly inset from transparent sprite margins)

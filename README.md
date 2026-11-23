@@ -51,3 +51,7 @@ The tree is now **smaller and positioned near ground level** so it no longer obs
 
 The web ZIP contains the entire playable Rune SDK game, not an image preview.
 Double-click `SPELA-LNU-LANDER.html` (or `index.html`) to play, with image and script assets in adjacent paths. Do not open the individual PNG assets.
+
+## v0.5.2: integrated obstacle, no overlay
+
+Removed the oversized/clipped foreground sprite that was hiding the university and pad. The original tree already present on the left of the approved campus image now has solid tree/foliage collision. Steer around it early. There is no additional drawn tree, and the narrowed grass landing pad and gentle Rune camera zoom are unchanged.
