@@ -60,7 +60,7 @@ app.whenReady().then(async () => {
                 worldSize: world ? [world.naturalWidth, world.naturalHeight] : [],
                 model: typeof lnulander !== "undefined" &&
                     Boolean(lnulander.model && lnulander.model.Landing),
-                imagesReady: ["lnu-h-house", "lnu-lander", "lnu-exhaust"].every(id => {
+                imagesReady: ["lnu-h-house", "lnu-lander", "lnu-exhaust", "lnu-tree"].every(id => {
                     const img = document.getElementById(id);
                     return Boolean(img && img.complete && img.naturalWidth > 0);
                 }),

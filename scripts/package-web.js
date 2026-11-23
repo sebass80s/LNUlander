@@ -25,7 +25,7 @@ fs.writeFileSync(
 fs.copyFileSync(path.join(root, "bin", "style.css"), path.join(site, "style.css"));
 fs.copyFileSync(path.join(root, "dist", "lnulander.js"), path.join(site, "lnulander.js"));
 fs.mkdirSync(path.join(site, "art"), { recursive: true });
-for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png"]) {
+for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", "campus-tree.png"]) {
     fs.copyFileSync(path.join(root, "asset", asset), path.join(site, "art", asset));
 }
 fs.writeFileSync(path.join(site, ".nojekyll"), "");

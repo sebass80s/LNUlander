@@ -9,22 +9,25 @@ lnulander.model.Landing.WORLD_WIDTH = 1720;
 lnulander.model.Landing.WORLD_HEIGHT = 1500;
 lnulander.model.Landing.WIDTH = 190;
 lnulander.model.Landing.HEIGHT = 198;
-lnulander.model.Landing.PAD_LEFT = 810;
-lnulander.model.Landing.PAD_RIGHT = 1230;
+lnulander.model.Landing.PAD_LEFT = 915;
+lnulander.model.Landing.PAD_RIGHT = 1185;
 lnulander.model.Landing.PAD_Y = 1242;
 lnulander.model.Landing.GROUND_Y = 1325;
-lnulander.model.Landing.MAX_VERTICAL_SPEED = 1.8;
-lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 1.4;
-lnulander.model.Landing.INITIAL_FUEL = 560;
+lnulander.model.Landing.MAX_VERTICAL_SPEED = 1.45;
+lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 0.95;
+lnulander.model.Landing.INITIAL_FUEL = 520;
 
 // A large pixel-art tree blocks the direct line of descent from the new spawn.
 // Circles follow the canopy silhouette; the narrow trunk remains solid.
+// The tree sprite is rendered at (500, 720), 420x600 pixels.
+// Separate circles follow the visible crown; trunk is a solid rectangle.
 lnulander.model.Landing.TREE_CROWNS = [
-    {x: 596, y: 936, radius: 92},
-    {x: 704, y: 920, radius: 94},
-    {x: 649, y: 836, radius: 104}
+    {x: 710, y: 865, radius: 118},
+    {x: 616, y: 955, radius: 118},
+    {x: 801, y: 970, radius: 112},
+    {x: 710, y: 1050, radius: 115}
 ];
-lnulander.model.Landing.TREE_TRUNK = {left: 631, right: 677, top: 998, bottom: 1325};
+lnulander.model.Landing.TREE_TRUNK = {left: 680, right: 740, top: 1045, bottom: 1325};
 
 /**
  * Test the visible hull (slightly inset from transparent sprite margins)
@@ -80,9 +83,9 @@ lnulander.model.Landing.advanceCameraZoom = function(currentZoom, landerY) {
 };
 
 lnulander.model.Landing.prototype.reset = function() {
-    this.x = 230;
-    this.y = 155;
-    this.vx = 0;
+    this.x = 85;
+    this.y = 80;
+    this.vx = 0.85;
     this.vy = 0;
     this.fuel = lnulander.model.Landing.INITIAL_FUEL;
     this.status = "flying";
