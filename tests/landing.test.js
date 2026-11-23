@@ -304,7 +304,7 @@ test("all foreground trees in the painted H-house landscape have hitboxes", () =
     for (const tree of L.TREES) {
         assert.ok(tree.crowns.length >= 2);
         assert.ok(tree.trunks.length >= 1);
-        assert.ok(tree.crowns.every(c => c.radius > 0));
+        assert.ok(tree.crowns.every(c => c.rx > 0 && c.ry > 0));
         assert.ok(tree.trunks.every(r => r.left < r.right && r.top < r.bottom));
     }
 });
@@ -369,4 +369,39 @@ test("all tree hitboxes are unaffected by Rune camera zoom", () => {
         assert.ok(L.zoomForAltitude(1100) > L.WIDE_ZOOM);
         assert.equal(L.treeHitAt(x,y), before);
     }
+});
+
+test("ship hitbox follows the solid fuselage and feet, not its transparent rectangle", () => {
+    const L = makeLander();
+    assert.ok(L.HULL_PARTS.length >= 3);
+    assert.ok(L.HULL_PARTS.every(p => p.rx > 0 && p.ry > 0));
+    assert.ok(L.HULL_PARTS.every(p => p.x - p.rx >= 0 && p.y - p.ry >= 0));
+    assert.ok(L.HULL_PARTS.every(p => p.x + p.rx <= L.WIDTH && p.y + p.ry <= L.HEIGHT));
+});
+
+test("empty sky beside the right tree no longer causes an invisible collision", () => {
+    const L = makeLander();
+    for (const pos of [[1280,530],[1300,600],[1160,560],[1350,510]]) {
+        assert.equal(L.treeHitAt(pos[0],pos[1]),null,
+            "unexpected tree contact for clear-air craft at " + pos);
+    }
+});
+
+test("visible contact with right tree and left tree still causes a crash", () => {
+    const L = makeLander();
+    assert.equal(L.treeHitAt(1450,655),"right-oak");
+    assert.equal(L.treeHitAt(150,660),"left-oak");
+});
+
+test("flag height alone does not make empty-space tree contact", () => {
+    const L = makeLander();
+    const oak = L.TREES.find(tree => tree.id === "right-oak");
+    assert.equal(L.overlapsTreeShape(oak,1320,490),false);
+});
+
+test("visible hull contacts tree trunk while near misses do not", () => {
+    const L = makeLander();
+    const oak = L.TREES.find(tree => tree.id === "right-oak");
+    assert.equal(L.m_ellipseHitsRect({x:1590,y:1150,rx:35,ry:40},oak.trunks[0]),true);
+    assert.equal(L.m_ellipseHitsRect({x:1400,y:1150,rx:35,ry:40},oak.trunks[0]),false);
 });

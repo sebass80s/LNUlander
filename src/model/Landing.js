@@ -17,26 +17,35 @@ lnulander.model.Landing.MAX_VERTICAL_SPEED = 1.45;
 lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 0.95;
 lnulander.model.Landing.INITIAL_FUEL = 520;
 
-// Built-in painted tree at the LEFT edge of the existing H-house backdrop.
-// No separately drawn sprite: these circles approximate its visible foliage.
+/**
+ * Collision geometry in WORLD pixels, aligned to grass-world.webp.
+ *
+ * A previous 142x164 rectangle surrounding the lander had massive transparent
+ * gaps around its flag, legs and fuselage. Testing that rectangle against
+ * overlarge circular foliage volumes caused invisible collisions.
+ *
+ * The lander now uses a handful of small ellipses following its actual yellow
+ * fuselage, cockpit and landing feet. The cosmetic flag is not solid.
+ * Each crown is a tighter ellipse, not an oversized circle. The woody trunks
+ * remain solid rectangles. Game rendering, zoom and art are unchanged.
+ */
+lnulander.model.Landing.HULL_PARTS = [
+    {x: 111, y: 133, rx: 49, ry: 42}, // yellow body
+    {x: 119, y: 101, rx: 33, ry: 23}, // cabin roof
+    {x: 48,  y: 172, rx: 19, ry: 12}, // left landing foot
+    {x: 159, y: 172, rx: 19, ry: 12}  // right landing foot
+];
+
 lnulander.model.Landing.TREE_CROWNS = [
-    {x: 80, y: 695, radius: 170},
-    {x: 205, y: 780, radius: 165},
-    {x: 100, y: 925, radius: 150},
-    {x: 290, y: 920, radius: 117}
+    {x: 115, y: 650, rx: 142, ry: 107},
+    {x: 225, y: 760, rx: 132, ry: 108},
+    {x: 98,  y: 895, rx: 115, ry: 108},
+    {x: 292, y: 925, rx: 99,  ry: 92}
 ];
 lnulander.model.Landing.TREE_TRUNK = {
     left: 65, right: 110, top: 930, bottom: 1255
 };
 
-/**
- * Each tree visible on the playable foreground grass has a separate physical
- * shape. Background-only treetops BEHIND the H-house are not obstacles, since
- * a collision there would occur against apparently empty sky/building.
- *
- * These positions use world coordinates, matching the 1720x1500 backdrop.
- * Circles describe crowns; rectangles describe the solid woody trunks.
- */
 lnulander.model.Landing.TREES = [
     {
         id: "left-oak",
@@ -46,10 +55,10 @@ lnulander.model.Landing.TREES = [
     {
         id: "right-oak",
         crowns: [
-            {x: 1605, y: 745, radius: 149},
-            {x: 1487, y: 850, radius: 137},
-            {x: 1682, y: 875, radius: 137},
-            {x: 1580, y: 974, radius: 100}
+            {x: 1632, y: 750, rx: 117, ry: 96},
+            {x: 1517, y: 856, rx: 103, ry: 96},
+            {x: 1682, y: 872, rx: 100, ry: 104},
+            {x: 1582, y: 964, rx: 100, ry: 86}
         ],
         trunks: [
             {left: 1574, right: 1635, top: 938, bottom: 1230}
@@ -58,8 +67,8 @@ lnulander.model.Landing.TREES = [
     {
         id: "right-sapling",
         crowns: [
-            {x: 1536, y: 1055, radius: 47},
-            {x: 1562, y: 1104, radius: 41}
+            {x: 1536, y: 1055, rx: 38, ry: 42},
+            {x: 1562, y: 1104, rx: 38, ry: 38}
         ],
         trunks: [
             {left: 1542, right: 1560, top: 1100, bottom: 1190}
@@ -68,35 +77,48 @@ lnulander.model.Landing.TREES = [
 ];
 
 /**
- * Checks the visible lander hull against ONE tree, without using camera zoom.
- * AABB-versus-circle contacts are conservative around the leafy silhouette.
+ * Ellipse/ellipse proximity. Combining half axes creates an inexpensive,
+ * smooth approximation of contact between the visible hull and leaf masses.
+ * Unlike AABB/circle tests this respects transparent corners of the sprite.
  */
+lnulander.model.Landing.m_ellipsesTouch = function(a, b) {
+    var rx = a.rx + b.rx;
+    var ry = a.ry + b.ry;
+    var dx = (a.x - b.x) / rx;
+    var dy = (a.y - b.y) / ry;
+    return dx * dx + dy * dy < 1;
+};
+
+/** Circle-like body/foot ellipse versus a tree trunk rectangle. */
+lnulander.model.Landing.m_ellipseHitsRect = function(part, rect) {
+    var closestX = Math.max(rect.left, Math.min(part.x, rect.right));
+    var closestY = Math.max(rect.top, Math.min(part.y, rect.bottom));
+    var dx = (part.x - closestX) / part.rx;
+    var dy = (part.y - closestY) / part.ry;
+    return dx * dx + dy * dy < 1;
+};
+
 lnulander.model.Landing.overlapsTreeShape = function(tree, x, y) {
     var C = lnulander.model.Landing;
-    var left = x + 24;
-    var right = x + C.WIDTH - 24;
-    var top = y + 20;
-    var bottom = y + C.HEIGHT - 14;
-    var i, rect, crown, px, py, dx, dy;
-
-    for (i = 0; i < tree.trunks.length; i++) {
-        rect = tree.trunks[i];
-        if (left < rect.right && right > rect.left &&
-            top < rect.bottom && bottom > rect.top) return true;
-    }
-
-    for (i = 0; i < tree.crowns.length; i++) {
-        crown = tree.crowns[i];
-        px = Math.max(left, Math.min(crown.x, right));
-        py = Math.max(top, Math.min(crown.y, bottom));
-        dx = px - crown.x;
-        dy = py - crown.y;
-        if (dx * dx + dy * dy < crown.radius * crown.radius) return true;
+    for (var i = 0; i < C.HULL_PARTS.length; i++) {
+        var original = C.HULL_PARTS[i];
+        var hull = {
+            x: x + original.x,
+            y: y + original.y,
+            rx: original.rx,
+            ry: original.ry
+        };
+        for (var j = 0; j < tree.trunks.length; j++) {
+            if (C.m_ellipseHitsRect(hull, tree.trunks[j])) return true;
+        }
+        for (var k = 0; k < tree.crowns.length; k++) {
+            if (C.m_ellipsesTouch(hull, tree.crowns[k])) return true;
+        }
     }
     return false;
 };
 
-/** Returns the ID of the tree hit by the ship or null when the way is clear. */
+/** Identify the obstacle hit, or null in empty air. */
 lnulander.model.Landing.treeHitAt = function(x, y) {
     var C = lnulander.model.Landing;
     for (var i = 0; i < C.TREES.length; i++) {
@@ -105,7 +127,7 @@ lnulander.model.Landing.treeHitAt = function(x, y) {
     return null;
 };
 
-/** Previous public API retained for existing gameplay and unit tests. */
+/** Backwards-compatible collision predicate. */
 lnulander.model.Landing.overlapsTree = function(x, y) {
     return lnulander.model.Landing.treeHitAt(x, y) !== null;
 };
