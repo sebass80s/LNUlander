@@ -7,7 +7,6 @@ lnulander.scene.Game = function() {
     this.m_flight = null;
     this.m_camera = null;
     this.m_background = null;
-    this.m_tree = null;
     this.m_padMarker = null;
     this.m_ship = null;
     this.m_flame = null;
@@ -50,8 +49,8 @@ lnulander.scene.Game.prototype.init = function() {
     rightExtension.flippedX = true;
     this.stage.addChildAt(rightExtension, 1);
 
-    // A tree that actually blocks the approach, drawn above the background.
-    this.m_drawTree();
+    // The visible left tree is already painted into the background. Its
+    // physical collision silhouette is in Landing.js; no extra sprite.
     this.m_drawNarrowPad();
 
     this.m_flame = new rune.display.Graphic(0, 0, 37, 55,
@@ -121,16 +120,6 @@ lnulander.scene.Game.prototype.update = function(step) {
     } else {
         this.m_message.visible = false;
     }
-};
-
-/**
- * The standalone tree sprite is painted to match the H-house landscape.
- * Collision geometry is maintained separately by Landing.overlapsTree.
- */
-lnulander.scene.Game.prototype.m_drawTree = function() {
-    this.m_tree = new rune.display.Graphic(
-        640, 952, 280, 373, document.getElementById("lnu-tree"));
-    this.stage.addChild(this.m_tree);
 };
 
 /**

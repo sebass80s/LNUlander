@@ -206,58 +206,49 @@ test("ascent restores full wide view after a low-level approach", () => {
     assert.equal(zoom, L.WIDE_ZOOM);
 });
 
-test("spawn is well left of the landing pad and tree forces steering", () => {
-    const L=makeLander(), ship=new L();
-    assert.ok(ship.x + L.WIDTH < L.PAD_LEFT);
-    assert.ok(ship.x + L.WIDTH < L.TREE_CROWNS[0].x);
-    assert.equal(L.overlapsTree(ship.x,ship.y),false);
+test("the existing painted left tree obstructs the approach", () => {
+    const L = makeLander(), ship = new L();
+    assert.equal(ship.x, 85);
+    assert.equal(L.overlapsTree(ship.x, ship.y), false);
+    assert.ok(L.TREE_CROWNS.every(c => c.x + c.radius < 430));
+    assert.ok(L.TREE_CROWNS.every(c => c.y >= 530));
 });
 
-test("a direct descent through the foliage crashes into the tree", () => {
-    const L=makeLander(), ship=new L();
-    ship.x=620;
-    ship.y=825;
-    ship.vy=2;
+test("falling into the tree crown causes a real crash", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 150; ship.y = 660; ship.vx = 0; ship.vy = 2;
     ship.tick({up:false,left:false,right:false});
-    assert.equal(ship.status,"crashed");
-    assert.equal(ship.crashReason,"tree");
+    assert.equal(ship.status, "crashed");
+    assert.equal(ship.crashReason, "tree");
 });
 
-test("tree trunk is solid even below the canopy", () => {
-    const L=makeLander(), ship=new L();
-    ship.x=684;
-    ship.y=1100;
-    ship.vy=1;
+test("the painted trunk also causes a crash", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 75; ship.y = 1100; ship.vx = 0; ship.vy = 1;
     ship.tick({up:false,left:false,right:false});
-    assert.equal(ship.status,"crashed");
-    assert.equal(ship.crashReason,"tree");
+    assert.equal(ship.status, "crashed");
+    assert.equal(ship.crashReason, "tree");
 });
 
-test("flying high over the tree is safe and the landing pad remains clear", () => {
-    const L=makeLander(), ship=new L();
-    ship.x=700;
-    ship.y=360;
-    ship.vy=0.5;
+test("the tree can be avoided with early steering", () => {
+    const L = makeLander(), ship = new L();
+    assert.equal(L.overlapsTree(85,80), false);
+    assert.equal(L.overlapsTree(500,760), false);
+    assert.equal(L.overlapsTree(955,L.PAD_Y-L.HEIGHT), false);
+    ship.x = 520; ship.y = 700;
     ship.tick({up:false,left:false,right:false});
-    assert.equal(ship.status,"flying");
-    assert.equal(L.overlapsTree(960,L.PAD_Y-L.HEIGHT),false);
+    assert.equal(ship.status, "flying");
 });
 
-test("flying to the left or right of the tree is safe", () => {
-    const L=makeLander();
-    assert.equal(L.overlapsTree(150,820),false);
-    assert.equal(L.overlapsTree(1060,820),false);
-});
-
-test("crash reason is cleared on retry", () => {
-    const L=makeLander(), ship=new L();
-    ship.x=620;
-    ship.y=825;
+test("retry resets safely above the tree", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 150; ship.y = 660;
     ship.tick({up:false,left:false,right:false});
-    assert.equal(ship.crashReason,"tree");
+    assert.equal(ship.crashReason, "tree");
     ship.reset();
-    assert.equal(ship.crashReason,"");
-    assert.equal(ship.status,"flying");
+    assert.equal(ship.crashReason, "");
+    assert.equal(ship.status, "flying");
+    assert.equal(L.overlapsTree(ship.x,ship.y),false);
 });
 
 test("v0.5: narrow pad has only modest room beside the lander", () => {
@@ -296,21 +287,11 @@ test("v0.5: visually marked closed pad edge is not a valid landing", () => {
     assert.equal(ship.status,"crashed");
 });
 
-test("v0.5: the tree crown hits and the center of the pad is unobstructed", () => {
-    const L=makeLander(), ship=new L();
-    assert.equal(L.overlapsTree(640,850),true);
-    assert.equal(L.overlapsTree(970,L.PAD_Y-L.HEIGHT),false);
-    assert.equal(L.overlapsTree(130,850),false);
-});
-
-test("v0.5.1: obstacle geometry matches the scaled tree, clear of the pad", () => {
+test("v0.5.2: left painted tree collision does not block the runway", () => {
     const L = makeLander();
-    assert.equal(L.TREE_TRUNK.left, 760);
-    assert.equal(L.TREE_TRUNK.right, 792);
-    assert.equal(L.TREE_TRUNK.bottom, L.GROUND_Y);
-    assert.ok(L.TREE_CROWNS.every(c => c.radius <= 80));
-    assert.ok(L.TREE_CROWNS.every(c => c.x + c.radius < L.PAD_LEFT));
-    assert.equal(L.overlapsTree(955, L.PAD_Y - L.HEIGHT), false);
-    assert.equal(L.overlapsTree(620, 825), true);
-    assert.equal(L.overlapsTree(150, 825), false);
+    assert.ok(L.TREE_CROWNS.every(c => c.x < 400));
+    assert.equal(L.TREE_TRUNK.left, 65);
+    assert.equal(L.TREE_TRUNK.right, 110);
+    assert.equal(L.overlapsTree(630, 950), false);
+    assert.equal(L.overlapsTree(970,L.PAD_Y-L.HEIGHT), false);
 });

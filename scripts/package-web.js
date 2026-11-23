@@ -25,7 +25,7 @@ fs.writeFileSync(
 fs.copyFileSync(path.join(root, "bin", "style.css"), path.join(site, "style.css"));
 fs.copyFileSync(path.join(root, "dist", "lnulander.js"), path.join(site, "lnulander.js"));
 fs.mkdirSync(path.join(site, "art"), { recursive: true });
-for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", "campus-tree.png"]) {
+for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png"]) {
     fs.copyFileSync(path.join(root, "asset", asset), path.join(site, "art", asset));
 }
 // A clearly named, clickable launcher alongside the standard index.html.
@@ -33,7 +33,7 @@ for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", 
 fs.copyFileSync(path.join(site, "index.html"),
     path.join(site, "SPELA-LNU-LANDER.html"));
 fs.writeFileSync(path.join(site, "LAS-MIG.txt"),
-    "LNU LANDER 0.5.1\n\n" +
+    "LNU LANDER 0.5.2\n\n" +
     "Dubbelklicka pa SPELA-LNU-LANDER.html for att spela.\n" +
     "Styr med A/D eller vanster/hoger piltangent.\n" +
     "Uppat eller mellanslag ger raketkraft. R startar om.\n" +
