@@ -17,3 +17,7 @@ for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", 
 assert.match(html, /art\/grass-world\.webp/);
 assert.match(html, /art\/grass-lander\.png/);
 console.log("Web bundle contains the Rune runtime, game and required files");
+
+const launcher = fs.readFileSync(path.join(dir, "SPELA-LNU-LANDER.html"), "utf8");
+assert.equal(launcher, html, "named game launcher must match index.html");
+assert.ok(fs.statSync(path.join(dir, "LAS-MIG.txt")).size > 100);

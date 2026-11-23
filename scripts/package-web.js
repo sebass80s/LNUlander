@@ -28,5 +28,15 @@ fs.mkdirSync(path.join(site, "art"), { recursive: true });
 for (const asset of ["grass-world.webp", "grass-lander.png", "grass-flame.png", "campus-tree.png"]) {
     fs.copyFileSync(path.join(root, "asset", asset), path.join(site, "art", asset));
 }
+// A clearly named, clickable launcher alongside the standard index.html.
+// Both are complete game entrypoints with the same Rune bundle and assets.
+fs.copyFileSync(path.join(site, "index.html"),
+    path.join(site, "SPELA-LNU-LANDER.html"));
+fs.writeFileSync(path.join(site, "LAS-MIG.txt"),
+    "LNU LANDER 0.5.1\n\n" +
+    "Dubbelklicka pa SPELA-LNU-LANDER.html for att spela.\n" +
+    "Styr med A/D eller vanster/hoger piltangent.\n" +
+    "Uppat eller mellanslag ger raketkraft. R startar om.\n" +
+    "Landa langsamt pa den gula delen av paden och undvik tradet.\n");
 fs.writeFileSync(path.join(site, ".nojekyll"), "");
 console.log("Web playtest packaged in site/");

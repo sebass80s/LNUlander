@@ -44,3 +44,10 @@ We use Rune Tools' ES5-style project structure. The SDK is pinned at upstream co
 The **macOS playtest build** creates unsigned Electron binaries. They are not notarized and macOS Gatekeeper may block them. Prefer the verified browser version.
 
 The stylized building depiction is unofficial and is not an accurate architectural model. The project has no official university affiliation.
+
+## v0.5.1 game distribution
+
+The tree is now **smaller and positioned near ground level** so it no longer obscures the university building or landing pad. Its collision hull was reduced accordingly.
+
+The web ZIP contains the entire playable Rune SDK game, not an image preview.
+Double-click `SPELA-LNU-LANDER.html` (or `index.html`) to play, with image and script assets in adjacent paths. Do not open the individual PNG assets.
