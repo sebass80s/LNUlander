@@ -19,12 +19,15 @@ lnulander.model.Landing.INITIAL_FUEL = 560;
 
 /** Desired Rune CameraViewport.zoom based on altitude above the grass. */
 lnulander.model.Landing.WIDE_ZOOM = 0.48;
-lnulander.model.Landing.CLOSE_ZOOM = 1.43;
+lnulander.model.Landing.CLOSE_ZOOM = 1.12;
 lnulander.model.Landing.zoomForAltitude = function(y) {
-    var start = 180;
-    var finish = lnulander.model.Landing.PAD_Y - lnulander.model.Landing.HEIGHT - 70;
-    var t = Math.max(0, Math.min(1, (y - start) / (finish - start)));
-    // Smoothstep avoids a sudden change when zooming begins or ends.
+    var C = lnulander.model.Landing;
+    // Zoom ONLY for the last 260 world pixels above the grass. The previous
+    // curve zoomed early enough to hide the landing pad from the pilot.
+    // Use the ship's feet, not its top, for a meaningful ground clearance.
+    var clearance = Math.max(0, C.PAD_Y - (y + C.HEIGHT));
+    var t = Math.max(0, Math.min(1, (260 - clearance) / 225));
+    // Smoothstep gently accelerates the final approach without sudden jumps.
     t = t * t * (3 - 2 * t);
     return lnulander.model.Landing.WIDE_ZOOM + (lnulander.model.Landing.CLOSE_ZOOM - lnulander.model.Landing.WIDE_ZOOM) * t;
 };
