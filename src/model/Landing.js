@@ -56,7 +56,7 @@ lnulander.model.Landing.TREES = [
         id: "right-oak",
         crowns: [
             {x: 1632, y: 750, rx: 117, ry: 96},
-            {x: 1517, y: 856, rx: 103, ry: 96},
+            {x: 1530, y: 880, rx: 92, ry: 85},
             {x: 1682, y: 872, rx: 100, ry: 104},
             {x: 1582, y: 964, rx: 100, ry: 86}
         ],

@@ -210,7 +210,7 @@ test("the existing painted left tree obstructs the approach", () => {
     const L = makeLander(), ship = new L();
     assert.equal(ship.x, 85);
     assert.equal(L.overlapsTree(ship.x, ship.y), false);
-    assert.ok(L.TREE_CROWNS.every(c => c.x + c.radius < 430));
+    assert.ok(L.TREE_CROWNS.every(c => c.x + c.rx < 430));
     assert.ok(L.TREE_CROWNS.every(c => c.y >= 530));
 });
 
@@ -224,7 +224,7 @@ test("falling into the tree crown causes a real crash", () => {
 
 test("the painted trunk also causes a crash", () => {
     const L = makeLander(), ship = new L();
-    ship.x = 75; ship.y = 1100; ship.vx = 0; ship.vy = 1;
+    ship.x = 25; ship.y = 1020; ship.vx = 0; ship.vy = 1;
     ship.tick({up:false,left:false,right:false});
     assert.equal(ship.status, "crashed");
     assert.equal(ship.crashReason, "tree");
@@ -330,7 +330,7 @@ test("small right-hand tree has separate canopy and trunk hitboxes", () => {
     const L = makeLander();
     const sapling = L.TREES.find(tree => tree.id === "right-sapling");
     assert.equal(L.overlapsTreeShape(sapling, 1470, 1010), true);
-    assert.equal(L.overlapsTreeShape(sapling, 1500, 1130), true);
+    assert.equal(L.overlapsTreeShape(sapling, 1415, 1000), true);
     assert.equal(L.overlapsTreeShape(sapling, 1150, 1050), false);
 });
 
