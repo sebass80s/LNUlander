@@ -97,15 +97,29 @@ test("restart restores full fuel and initial altitude", () => {
     assert.equal(ship.fuel,560);
 });
 
-test("Rune camera zoom increases smoothly as craft approaches grass", () => {
-    const L=makeLander();
-    const low=L.zoomForAltitude(160);
-    const middle=L.zoomForAltitude(660);
-    const close=L.zoomForAltitude(1050);
-    assert.equal(low,L.WIDE_ZOOM);
-    assert.ok(middle>low);
-    assert.ok(close>middle);
-    assert.ok(close<=1.431);
+test("zoom stays fully wide until the ship is truly near the grass", () => {
+    const L = makeLander();
+    const shipYAt260Clearance = L.PAD_Y - L.HEIGHT - 260;
+    assert.equal(L.zoomForAltitude(155), L.WIDE_ZOOM);
+    assert.equal(L.zoomForAltitude(550), L.WIDE_ZOOM);
+    assert.equal(L.zoomForAltitude(shipYAt260Clearance), L.WIDE_ZOOM);
+    assert.ok(L.zoomForAltitude(shipYAt260Clearance + 25) > L.WIDE_ZOOM);
+    assert.equal(L.zoomForAltitude(L.PAD_Y - L.HEIGHT - 35), L.CLOSE_ZOOM);
+});
+
+test("landing pad remains vertically visible while the camera zooms in", () => {
+    const L = makeLander();
+    // At an ideal centered follow position, the pad must remain within half
+    // the camera viewport height, allowing the player to aim throughout.
+    for (let clearance = 0; clearance <= 260; clearance += 5) {
+        const shipY = L.PAD_Y - L.HEIGHT - clearance;
+        const zoom = L.zoomForAltitude(shipY);
+        const padFromShipCenter = clearance + L.HEIGHT / 2;
+        const cameraHalfWorldHeight = (720 / zoom) / 2;
+        assert.ok(padFromShipCenter <= cameraHalfWorldHeight,
+            "pad goes off-screen at clearance " + clearance);
+    }
+    assert.ok(L.CLOSE_ZOOM < 1.2);
 });
 
 test("zoom stays inside Rune SDK viewport range at extreme altitudes", () => {
@@ -125,7 +139,7 @@ test("climbing away from the landing pad reverses the camera zoom", () => {
     for (let i = 0; i < 100; i++) {
         zoom = L.advanceCameraZoom(zoom, ground);
     }
-    assert.ok(zoom > 1.42, "close to ground should zoom in");
+    assert.ok(zoom > 1.11, "close to ground should zoom in");
 
     // Thrusting upwards reduces world y. The camera should zoom OUT again.
     const afterClimbing = L.advanceCameraZoom(zoom, 350);
@@ -147,7 +161,7 @@ test("camera zoom reverses repeatedly without hysteresis or jumping", () => {
     for (let y = 150; y <= 1000; y += 20) {
         zoom = L.advanceCameraZoom(zoom, y);
         assert.ok(zoom >= last - 1e-9);
-        assert.ok(zoom <= 1.43);
+        assert.ok(zoom <= L.CLOSE_ZOOM);
         last = zoom;
     }
     // Reverse the direction: camera zoom responds to rising altitude.
@@ -177,5 +191,12 @@ test("camera smoothly returns to its widest limit after ascent", () => {
         assert.ok(next >= L.WIDE_ZOOM);
         zoom = next;
     }
+    assert.equal(zoom, L.WIDE_ZOOM);
+});
+
+test("ascent restores full wide view after a low-level approach", () => {
+    const L = makeLander();
+    let zoom = L.CLOSE_ZOOM;
+    for (let i = 0; i < 180; i++) zoom = L.advanceCameraZoom(zoom, 300);
     assert.equal(zoom, L.WIDE_ZOOM);
 });
