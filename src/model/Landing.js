@@ -30,29 +30,84 @@ lnulander.model.Landing.TREE_TRUNK = {
 };
 
 /**
- * Test the visible hull (slightly inset from transparent sprite margins)
- * against the tree's foliage and trunk. Keeps gameplay frame-independent.
+ * Each tree visible on the playable foreground grass has a separate physical
+ * shape. Background-only treetops BEHIND the H-house are not obstacles, since
+ * a collision there would occur against apparently empty sky/building.
+ *
+ * These positions use world coordinates, matching the 1720x1500 backdrop.
+ * Circles describe crowns; rectangles describe the solid woody trunks.
  */
-lnulander.model.Landing.overlapsTree = function(x, y) {
+lnulander.model.Landing.TREES = [
+    {
+        id: "left-oak",
+        crowns: lnulander.model.Landing.TREE_CROWNS,
+        trunks: [lnulander.model.Landing.TREE_TRUNK]
+    },
+    {
+        id: "right-oak",
+        crowns: [
+            {x: 1605, y: 745, radius: 149},
+            {x: 1487, y: 850, radius: 137},
+            {x: 1682, y: 875, radius: 137},
+            {x: 1580, y: 974, radius: 100}
+        ],
+        trunks: [
+            {left: 1574, right: 1635, top: 938, bottom: 1230}
+        ]
+    },
+    {
+        id: "right-sapling",
+        crowns: [
+            {x: 1536, y: 1055, radius: 47},
+            {x: 1562, y: 1104, radius: 41}
+        ],
+        trunks: [
+            {left: 1542, right: 1560, top: 1100, bottom: 1190}
+        ]
+    }
+];
+
+/**
+ * Checks the visible lander hull against ONE tree, without using camera zoom.
+ * AABB-versus-circle contacts are conservative around the leafy silhouette.
+ */
+lnulander.model.Landing.overlapsTreeShape = function(tree, x, y) {
     var C = lnulander.model.Landing;
     var left = x + 24;
     var right = x + C.WIDTH - 24;
     var top = y + 20;
     var bottom = y + C.HEIGHT - 14;
-    var trunk = C.TREE_TRUNK;
-    if (left < trunk.right && right > trunk.left &&
-        top < trunk.bottom && bottom > trunk.top) return true;
+    var i, rect, crown, px, py, dx, dy;
 
-    for (var i = 0; i < C.TREE_CROWNS.length; i++) {
-        var crown = C.TREE_CROWNS[i];
-        // Closest point on the hull box to this circular foliage cluster.
-        var px = Math.max(left, Math.min(crown.x, right));
-        var py = Math.max(top, Math.min(crown.y, bottom));
-        var dx = px - crown.x;
-        var dy = py - crown.y;
+    for (i = 0; i < tree.trunks.length; i++) {
+        rect = tree.trunks[i];
+        if (left < rect.right && right > rect.left &&
+            top < rect.bottom && bottom > rect.top) return true;
+    }
+
+    for (i = 0; i < tree.crowns.length; i++) {
+        crown = tree.crowns[i];
+        px = Math.max(left, Math.min(crown.x, right));
+        py = Math.max(top, Math.min(crown.y, bottom));
+        dx = px - crown.x;
+        dy = py - crown.y;
         if (dx * dx + dy * dy < crown.radius * crown.radius) return true;
     }
     return false;
+};
+
+/** Returns the ID of the tree hit by the ship or null when the way is clear. */
+lnulander.model.Landing.treeHitAt = function(x, y) {
+    var C = lnulander.model.Landing;
+    for (var i = 0; i < C.TREES.length; i++) {
+        if (C.overlapsTreeShape(C.TREES[i], x, y)) return C.TREES[i].id;
+    }
+    return null;
+};
+
+/** Previous public API retained for existing gameplay and unit tests. */
+lnulander.model.Landing.overlapsTree = function(x, y) {
+    return lnulander.model.Landing.treeHitAt(x, y) !== null;
 };
 
 /** Desired Rune CameraViewport.zoom based on altitude above the grass. */
@@ -90,6 +145,7 @@ lnulander.model.Landing.prototype.reset = function() {
     this.fuel = lnulander.model.Landing.INITIAL_FUEL;
     this.status = "flying";
     this.crashReason = "";
+    this.collisionTree = "";
     this.thrusting = false;
 };
 
@@ -124,12 +180,14 @@ lnulander.model.Landing.prototype.tick = function(controls) {
         this.y = 0;
         this.vy = Math.max(0, this.vy);
     }
+    var hitTree = C.treeHitAt(this.x, this.y);
     if (this.x < 0 || this.x + C.WIDTH > C.WORLD_WIDTH) {
         this.status = "crashed";
         this.crashReason = "boundary";
-    } else if (C.overlapsTree(this.x, this.y)) {
+    } else if (hitTree !== null) {
         this.status = "crashed";
         this.crashReason = "tree";
+        this.collisionTree = hitTree;
     } else {
         var intersectsPad = this.x < C.PAD_RIGHT && this.x + C.WIDTH > C.PAD_LEFT;
         if (intersectsPad && this.y + C.HEIGHT >= C.PAD_Y) {

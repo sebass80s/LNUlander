@@ -55,3 +55,7 @@ Double-click `SPELA-LNU-LANDER.html` (or `index.html`) to play, with image and s
 ## v0.5.2: integrated obstacle, no overlay
 
 Removed the oversized/clipped foreground sprite that was hiding the university and pad. The original tree already present on the left of the approved campus image now has solid tree/foliage collision. Steer around it early. There is no additional drawn tree, and the narrowed grass landing pad and gentle Rune camera zoom are unchanged.
+
+## v0.5.3: collisions on all foreground trees
+
+The trees actually painted into `grass-world.webp` now all have physics geometry. This includes the existing large left tree, the large right tree, and the smaller right-side tree visible on the grass. Their canopies use multiple circle-versus-ship hull tests and their trunks use rectangles. No new art is overlaid and no extra tree is drawn. Distant treetops behind the H-house building remain background detail, since their trunks are occluded and they are not foreground obstacles. The tree-to-ship collision check is in world coordinates, independent of camera zoom.
