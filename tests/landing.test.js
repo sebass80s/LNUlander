@@ -44,7 +44,7 @@ test("steering works and no input changes the sign of acceleration", () => {
 
 test("slow touchdown fully inside the grass H-pad wins", () => {
     const L=makeLander(), ship=new L();
-    ship.x=925;
+    ship.x=945;
     ship.y=L.PAD_Y-L.HEIGHT;
     ship.vy=0.6;
     ship.tick({up:false,left:false,right:false});
@@ -93,10 +93,11 @@ test("restart restores full fuel and initial altitude", () => {
     ship.fuel=0;
     ship.reset();
     assert.equal(ship.status,"flying");
-    assert.equal(ship.y,155);
-    assert.equal(ship.x,230);
+    assert.equal(ship.y,80);
+    assert.equal(ship.x,85);
+    assert.equal(ship.vx,0.85);
     assert.equal(ship.crashReason,"");
-    assert.equal(ship.fuel,560);
+    assert.equal(ship.fuel,520);
 });
 
 test("zoom stays fully wide until the ship is truly near the grass", () => {
@@ -212,8 +213,8 @@ test("spawn is well left of the landing pad and tree forces steering", () => {
 
 test("a direct descent through the foliage crashes into the tree", () => {
     const L=makeLander(), ship=new L();
-    ship.x=530;
-    ship.y=770;
+    ship.x=620;
+    ship.y=825;
     ship.vy=2;
     ship.tick({up:false,left:false,right:false});
     assert.equal(ship.status,"crashed");
@@ -222,8 +223,8 @@ test("a direct descent through the foliage crashes into the tree", () => {
 
 test("tree trunk is solid even below the canopy", () => {
     const L=makeLander(), ship=new L();
-    ship.x=615;
-    ship.y=1090;
+    ship.x=684;
+    ship.y=1100;
     ship.vy=1;
     ship.tick({up:false,left:false,right:false});
     assert.equal(ship.status,"crashed");
@@ -232,18 +233,18 @@ test("tree trunk is solid even below the canopy", () => {
 
 test("flying high over the tree is safe and the landing pad remains clear", () => {
     const L=makeLander(), ship=new L();
-    ship.x=585;
+    ship.x=700;
     ship.y=360;
     ship.vy=0.5;
     ship.tick({up:false,left:false,right:false});
     assert.equal(ship.status,"flying");
-    assert.equal(L.overlapsTree(925,L.PAD_Y-L.HEIGHT),false);
+    assert.equal(L.overlapsTree(960,L.PAD_Y-L.HEIGHT),false);
 });
 
 test("flying to the left or right of the tree is safe", () => {
     const L=makeLander();
     assert.equal(L.overlapsTree(150,820),false);
-    assert.equal(L.overlapsTree(910,820),false);
+    assert.equal(L.overlapsTree(1060,820),false);
 });
 
 test("crash reason is cleared on retry", () => {
@@ -255,4 +256,47 @@ test("crash reason is cleared on retry", () => {
     ship.reset();
     assert.equal(ship.crashReason,"");
     assert.equal(ship.status,"flying");
+});
+
+test("v0.5: narrow pad has only modest room beside the lander", () => {
+    const L = makeLander();
+    assert.equal(L.PAD_RIGHT - L.PAD_LEFT,270);
+    assert.equal((L.PAD_RIGHT - L.PAD_LEFT) - L.WIDTH,80);
+    assert.ok(L.MAX_HORIZONTAL_SPEED < 1.0);
+    assert.ok(L.MAX_VERTICAL_SPEED < 1.5);
+});
+
+test("v0.5: initial side drift is present but steerable", () => {
+    const L=makeLander(), ship=new L();
+    assert.equal(ship.vx,0.85);
+    assert.ok(ship.x + L.WIDTH < L.PAD_LEFT - 550);
+    ship.tick({up:false,left:true,right:false});
+    assert.ok(ship.vx < 0.85);
+});
+
+test("v0.5: landing succeeds in safe 270px strip", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=955;
+    ship.y=L.PAD_Y-L.HEIGHT;
+    ship.vx=0.25;
+    ship.vy=0.65;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status,"landed");
+});
+
+test("v0.5: visually marked closed pad edge is not a valid landing", () => {
+    const L=makeLander(), ship=new L();
+    ship.x=830;
+    ship.y=L.PAD_Y-L.HEIGHT;
+    ship.vx=0;
+    ship.vy=0.4;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status,"crashed");
+});
+
+test("v0.5: the tree crown hits and the center of the pad is unobstructed", () => {
+    const L=makeLander(), ship=new L();
+    assert.equal(L.overlapsTree(640,850),true);
+    assert.equal(L.overlapsTree(970,L.PAD_Y-L.HEIGHT),false);
+    assert.equal(L.overlapsTree(130,850),false);
 });
