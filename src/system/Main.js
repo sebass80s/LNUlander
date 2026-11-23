@@ -3,7 +3,7 @@ lnulander.system.Main = function() {
     rune.system.Application.call(this, {
         developer: "se.lnulander",
         app: "lnulander",
-        build: "0.3.0",
+        build: "0.3.1",
         scene: lnulander.scene.Game,
         resources: lnulander.data.Requests,
         useGamepads: false,

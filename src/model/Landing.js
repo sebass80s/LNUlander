@@ -18,13 +18,15 @@ lnulander.model.Landing.MAX_HORIZONTAL_SPEED = 1.4;
 lnulander.model.Landing.INITIAL_FUEL = 560;
 
 /** Desired Rune CameraViewport.zoom based on altitude above the grass. */
+lnulander.model.Landing.WIDE_ZOOM = 0.48;
+lnulander.model.Landing.CLOSE_ZOOM = 1.43;
 lnulander.model.Landing.zoomForAltitude = function(y) {
     var start = 180;
     var finish = lnulander.model.Landing.PAD_Y - lnulander.model.Landing.HEIGHT - 70;
     var t = Math.max(0, Math.min(1, (y - start) / (finish - start)));
     // Smoothstep avoids a sudden change when zooming begins or ends.
     t = t * t * (3 - 2 * t);
-    return 0.75 + 0.68 * t;
+    return lnulander.model.Landing.WIDE_ZOOM + (lnulander.model.Landing.CLOSE_ZOOM - lnulander.model.Landing.WIDE_ZOOM) * t;
 };
 
 /**

@@ -24,10 +24,29 @@ lnulander.scene.Game.prototype.init = function() {
     this.m_flight = new lnulander.model.Landing();
     var C = lnulander.model.Landing;
 
+    // Fill the extended camera margins at high altitude with sky instead of black.
+    var skyMat = new rune.display.Artboard(-1700, -1500, 5100, 4500);
+    skyMat.backgroundColor = "#139af6";
+    this.stage.addChild(skyMat);
+
     // A single high-resolution world, never a pre-upscaled 418x235 thumbnail.
     this.m_background = new rune.display.Graphic(0, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
         document.getElementById("lnu-h-house"));
     this.stage.addChild(this.m_background);
+
+    // Mirror the outer edges of the approved landscape to fill the extra
+    // horizontal camera view at 0.48x. Unlike stretching the art, reflection
+    // retains native texel detail and avoids abrupt blue side columns.
+    var leftExtension = new rune.display.Graphic(
+        -C.WORLD_WIDTH, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
+        document.getElementById("lnu-h-house"));
+    leftExtension.flippedX = true;
+    this.stage.addChildAt(leftExtension, 1);
+    var rightExtension = new rune.display.Graphic(
+        C.WORLD_WIDTH, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
+        document.getElementById("lnu-h-house"));
+    rightExtension.flippedX = true;
+    this.stage.addChildAt(rightExtension, 1);
 
     this.m_flame = new rune.display.Graphic(0, 0, 37, 55,
         document.getElementById("lnu-exhaust"));
@@ -46,7 +65,7 @@ lnulander.scene.Game.prototype.init = function() {
     // World pixels become downsampled while far away; small enlargements
     // during the approach use smooth interpolation to avoid shimmering.
     this.m_camera.canvas.smoothing = true;
-    this.m_camera.viewport.zoomTo(0.75);
+    this.m_camera.viewport.zoomTo(lnulander.model.Landing.WIDE_ZOOM);
     this.m_initHud();
 };
 
@@ -55,7 +74,7 @@ lnulander.scene.Game.prototype.update = function(step) {
     rune.scene.Scene.prototype.update.call(this);
     if (this.keyboard.justPressed("R")) {
         this.m_flight.reset();
-        this.m_camera.viewport.zoomTo(0.75);
+        this.m_camera.viewport.zoomTo(lnulander.model.Landing.WIDE_ZOOM);
     }
     this.m_flight.tick({
         up: this.keyboard.pressed("UP") || this.keyboard.pressed("SPACE") ||
