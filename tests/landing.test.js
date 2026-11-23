@@ -424,6 +424,7 @@ test("holding left at the invisible edge does not repeatedly crash", () => {
     const L = makeLander(), ship = new L();
     ship.x = 0;
     ship.y = 174;
+    ship.vx = 0; // Reset the game's intentional initial rightward drift.
     for (let i = 0; i < 40; i++) {
         ship.tick({up:false,left:true,right:false});
         assert.equal(ship.status, "flying", "crashed on tick " + i);
