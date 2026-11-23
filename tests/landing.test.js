@@ -295,3 +295,78 @@ test("v0.5.2: left painted tree collision does not block the runway", () => {
     assert.equal(L.overlapsTree(630, 950), false);
     assert.equal(L.overlapsTree(970,L.PAD_Y-L.HEIGHT), false);
 });
+
+test("all foreground trees in the painted H-house landscape have hitboxes", () => {
+    const L = makeLander();
+    assert.equal(L.TREES.length, 3);
+    const ids = Array.from(L.TREES, tree => tree.id);
+    assert.deepEqual(ids, ["left-oak", "right-oak", "right-sapling"]);
+    for (const tree of L.TREES) {
+        assert.ok(tree.crowns.length >= 2);
+        assert.ok(tree.trunks.length >= 1);
+        assert.ok(tree.crowns.every(c => c.radius > 0));
+        assert.ok(tree.trunks.every(r => r.left < r.right && r.top < r.bottom));
+    }
+});
+
+test("large right-hand tree crown is solid and registers the right tree", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 1450;
+    ship.y = 655;
+    ship.vx = 0; ship.vy = 1;
+    ship.tick({up:false, left:false, right:false});
+    assert.equal(ship.status, "crashed");
+    assert.equal(ship.crashReason, "tree");
+    assert.equal(ship.collisionTree, "right-oak");
+});
+
+test("large right-hand tree trunk is solid", () => {
+    const L = makeLander();
+    const oak = L.TREES.find(tree => tree.id === "right-oak");
+    assert.equal(L.overlapsTreeShape(oak, 1520, 1120), true);
+});
+
+test("small right-hand tree has separate canopy and trunk hitboxes", () => {
+    const L = makeLander();
+    const sapling = L.TREES.find(tree => tree.id === "right-sapling");
+    assert.equal(L.overlapsTreeShape(sapling, 1470, 1010), true);
+    assert.equal(L.overlapsTreeShape(sapling, 1500, 1130), true);
+    assert.equal(L.overlapsTreeShape(sapling, 1150, 1050), false);
+});
+
+test("steering clear of all trees permits a safe landing on the pad", () => {
+    const L = makeLander(), ship = new L();
+    for (let x = 900; x <= 995; x += 19) {
+        assert.equal(L.treeHitAt(x, L.PAD_Y - L.HEIGHT), null);
+    }
+    ship.x = 945;
+    ship.y = L.PAD_Y - L.HEIGHT;
+    ship.vx = 0; ship.vy = 0.4;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.status, "landed");
+});
+
+test("reset removes tree identity, preventing stale crash messages", () => {
+    const L = makeLander(), ship = new L();
+    ship.x = 1450;
+    ship.y = 655;
+    ship.vx = 0; ship.vy = 1;
+    ship.tick({up:false,left:false,right:false});
+    assert.equal(ship.collisionTree, "right-oak");
+    ship.reset();
+    assert.equal(ship.collisionTree, "");
+    assert.equal(ship.status, "flying");
+});
+
+test("all tree hitboxes are unaffected by Rune camera zoom", () => {
+    const L = makeLander();
+    const touching = [ [150,660], [1450,655] ];
+    for (const [x,y] of touching) {
+        const before = L.treeHitAt(x,y);
+        assert.ok(before);
+        assert.equal(L.zoomForAltitude(100), L.WIDE_ZOOM);
+        assert.equal(L.treeHitAt(x,y), before);
+        assert.ok(L.zoomForAltitude(1100) > L.WIDE_ZOOM);
+        assert.equal(L.treeHitAt(x,y), before);
+    }
+});
