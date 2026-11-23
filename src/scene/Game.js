@@ -24,6 +24,11 @@ lnulander.scene.Game.prototype.init = function() {
     this.m_flight = new lnulander.model.Landing();
     var C = lnulander.model.Landing;
 
+    // Fill the extended camera margins at high altitude with sky instead of black.
+    var skyMat = new rune.display.Artboard(-1700, -1500, 5100, 4500);
+    skyMat.backgroundColor = "#139af6";
+    this.stage.addChild(skyMat);
+
     // A single high-resolution world, never a pre-upscaled 418x235 thumbnail.
     this.m_background = new rune.display.Graphic(0, 0, C.WORLD_WIDTH, C.WORLD_HEIGHT,
         document.getElementById("lnu-h-house"));
@@ -46,7 +51,7 @@ lnulander.scene.Game.prototype.init = function() {
     // World pixels become downsampled while far away; small enlargements
     // during the approach use smooth interpolation to avoid shimmering.
     this.m_camera.canvas.smoothing = true;
-    this.m_camera.viewport.zoomTo(0.75);
+    this.m_camera.viewport.zoomTo(lnulander.model.Landing.WIDE_ZOOM);
     this.m_initHud();
 };
 
@@ -55,7 +60,7 @@ lnulander.scene.Game.prototype.update = function(step) {
     rune.scene.Scene.prototype.update.call(this);
     if (this.keyboard.justPressed("R")) {
         this.m_flight.reset();
-        this.m_camera.viewport.zoomTo(0.75);
+        this.m_camera.viewport.zoomTo(lnulander.model.Landing.WIDE_ZOOM);
     }
     this.m_flight.tick({
         up: this.keyboard.pressed("UP") || this.keyboard.pressed("SPACE") ||

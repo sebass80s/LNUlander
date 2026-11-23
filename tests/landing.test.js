@@ -102,7 +102,7 @@ test("Rune camera zoom increases smoothly as craft approaches grass", () => {
     const low=L.zoomForAltitude(160);
     const middle=L.zoomForAltitude(660);
     const close=L.zoomForAltitude(1050);
-    assert.equal(low,0.75);
+    assert.equal(low,L.WIDE_ZOOM);
     assert.ok(middle>low);
     assert.ok(close>middle);
     assert.ok(close<=1.431);
@@ -119,7 +119,7 @@ test("zoom stays inside Rune SDK viewport range at extreme altitudes", () => {
 test("climbing away from the landing pad reverses the camera zoom", () => {
     const L = makeLander();
     const ground = L.PAD_Y - L.HEIGHT;
-    let zoom = 0.75;
+    let zoom = L.WIDE_ZOOM;
 
     // Move toward the landing pad, allowing the actual camera easing to settle.
     for (let i = 0; i < 100; i++) {
@@ -135,7 +135,7 @@ test("climbing away from the landing pad reverses the camera zoom", () => {
     for (let i = 0; i < 160; i++) {
         zoom = L.advanceCameraZoom(zoom, 100);
     }
-    assert.ok(Math.abs(zoom - 0.75) < 0.001,
+    assert.ok(Math.abs(zoom - L.WIDE_ZOOM) < 0.001,
         "zoom should smoothly return to the original wide view");
 });
 
@@ -155,8 +155,27 @@ test("camera zoom reverses repeatedly without hysteresis or jumping", () => {
     for (let y = 1000; y >= 100; y -= 20) {
         const next = L.advanceCameraZoom(zoom, y);
         if (next < zoom) startedZoomingOut = true;
-        assert.ok(next >= 0.75 && next <= 1.43);
+        assert.ok(next >= L.WIDE_ZOOM && next <= L.CLOSE_ZOOM);
         zoom = next;
     }
     assert.equal(startedZoomingOut, true);
+});
+
+test("world at maximum height uses widest camera framing", () => {
+    const L = makeLander();
+    assert.equal(L.WIDE_ZOOM, 720 / L.WORLD_HEIGHT);
+    assert.equal(L.zoomForAltitude(0), L.WIDE_ZOOM);
+    assert.equal(L.zoomForAltitude(155), L.WIDE_ZOOM);
+    assert.ok(1280 / L.WIDE_ZOOM > L.WORLD_WIDTH);
+});
+test("camera smoothly returns to its widest limit after ascent", () => {
+    const L = makeLander();
+    let zoom = L.CLOSE_ZOOM;
+    for (let i = 0; i < 200; i++) {
+        const next = L.advanceCameraZoom(zoom, 0);
+        assert.ok(next <= zoom + 1e-12);
+        assert.ok(next >= L.WIDE_ZOOM);
+        zoom = next;
+    }
+    assert.equal(zoom, L.WIDE_ZOOM);
 });
